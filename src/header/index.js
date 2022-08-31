@@ -14,7 +14,7 @@ const Header = () => {
 	const renderStandingsSubLinks = () => (
 		showStandingsSublinks && 
 		<div className={`header__nav-sub-links ${expandedClass}`}>
-			<NavLink className="header__nav-link" to="/standings/driver">
+			<NavLink className="header__nav-link" to="/standings/driver" onClick={() => setNavLinksOpen(false)}>
 				{({ isActive }) => (
 					<div className={labelClass(isActive)}>
 						<span className='header__nav-link-text'>Driver Standings</span>
@@ -22,7 +22,7 @@ const Header = () => {
 					</div>
 				)}
 			</NavLink>
-			<NavLink className="header__nav-link" to="/standings/constructor">
+			<NavLink className="header__nav-link" to="/standings/constructor" onClick={() => setNavLinksOpen(false)}>
 				{({ isActive }) => (
 					<div className={labelClass(isActive)}>
 						<span className='header__nav-link-text'>Constructor Standings</span>
@@ -39,7 +39,7 @@ const Header = () => {
 		>
 			<div className="header__top">
 				<div className="header__responsive-bar">
-					<Link className="header__title" to="/">
+					<Link className="header__title" to="/" onClick={() => setNavLinksOpen(false)}>
 						STRL
 					</Link>
 
@@ -61,7 +61,7 @@ const Header = () => {
 						</div>
 					</a>
 					{width <= 820 && renderStandingsSubLinks()}
-					<NavLink className="header__nav-link" to="/race-results">
+					<NavLink className="header__nav-link" to="/race-results" onClick={() => setNavLinksOpen(false)}>
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>
 								<span className='header__nav-link-text'>Race Results</span>
@@ -69,7 +69,7 @@ const Header = () => {
 							</div>
 						)}
 					</NavLink>
-					<NavLink className="header__nav-link" to="/qualifying">
+					<NavLink className="header__nav-link" to="/qualifying" onClick={() => setNavLinksOpen(false)}>
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>
 								<span className='header__nav-link-text'>Qualifying</span>
@@ -77,7 +77,7 @@ const Header = () => {
 							</div>
 						)}
 					</NavLink>
-					<NavLink className="header__nav-link" to="/schedule">
+					<NavLink className="header__nav-link" to="/schedule" onClick={() => setNavLinksOpen(false)}>
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>
 								<span className='header__nav-link-text'>Schedule</span>
@@ -85,7 +85,7 @@ const Header = () => {
 							</div>
 						)}
 					</NavLink>
-					<NavLink className="header__nav-link" to="/medal-count">
+					<NavLink className="header__nav-link" to="/medal-count" onClick={() => setNavLinksOpen(false)}>
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>
 								<span className='header__nav-link-text'>League Leaders</span>
