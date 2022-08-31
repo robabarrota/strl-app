@@ -1,12 +1,12 @@
 import './styles.scss';
 import { Link, NavLink } from 'react-router-dom';
-import useWindowDimensions from 'src/hooks/useWindowDimensions';
+import useIsMobile from 'src/hooks/useIsMobile';
 import React, { useState, useMemo } from 'react';
 
 const Header = () => {
 	const [navLinksOpen, setNavLinksOpen] = useState(false);
     const [showStandingsSublinks, setShowStandingsSublinks] = useState(false);
-	const { width } = useWindowDimensions();
+	const isMobile = useIsMobile();
 
 	const expandedClass = useMemo(() => (navLinksOpen ? 'header__nav-sub-links--expanded' : ''), [navLinksOpen]);
 	const labelClass = (isActive) => isActive ? 'header__nav-link-label header__nav-link--active' : 'header__nav-link-label header__nav-link--inactive';
@@ -60,7 +60,7 @@ const Header = () => {
 							<i className={"fa-solid fa-chevron-down header__dropdown-chevron"}></i>
 						</div>
 					</a>
-					{width <= 820 && renderStandingsSubLinks()}
+					{!isMobile && renderStandingsSubLinks()}
 					<NavLink className="header__nav-link" to="/race-results">
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>
@@ -95,7 +95,7 @@ const Header = () => {
 					</NavLink>
 				</div>
 			</div>
-			{width > 820 && renderStandingsSubLinks()}
+			{isMobile && renderStandingsSubLinks()}
 		</div>
 	);
 }

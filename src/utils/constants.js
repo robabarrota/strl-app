@@ -5,6 +5,8 @@ const sheetId = '1r8vXuLNfUxgmRlQ67YKBzC6gc22irsdzlHI6DSyyWPc';
 
 const constants = {
 
+    mobileWidth: 920,
+
     sheetConfig: {
         apiKey: process.env.REACT_APP_LOCAL_SHEETS_API_KEY ?? sheetKey,
         sheetId: sheetId,

@@ -5,7 +5,7 @@ import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants }
 import { isEmpty, groupBy, first, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
-import useWindowDimensions from 'src/hooks/useWindowDimensions';
+import useIsMobile from 'src/hooks/useIsMobile';
 import constants from 'src/utils/constants';
 import TableTooltip from 'src/components/table-tooltip';
 import {
@@ -22,7 +22,7 @@ import {
 const DriverStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
-	const { width } = useWindowDimensions();
+	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
 	const { content: fastestLaps, loading: fastestLapsLoading } = useSelector(getFastestLaps);
@@ -40,8 +40,8 @@ const DriverStandings = () => {
 			|| isEmpty(participants) || participantsLoading),
 		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading])
 
-	const formatDriverName = useCallback((driver) => width > 820 ? driver : driver.split(' ')[0], [width])
-	const formatTrackName = useCallback((track) => width > 820 ? track : constants.trackAbbreviationMap[track], [width])
+	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
+	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) =>
 		Track
@@ -110,7 +110,7 @@ const DriverStandings = () => {
 		}, [])
 	, [resultHeaders, driverPoints, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => width > 820 ? 0 : 270, [width]);
+	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'driver-standings__driver';

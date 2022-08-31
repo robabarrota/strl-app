@@ -4,7 +4,7 @@ import { getMedalCount } from 'src/redux/selectors';
 import { fetchMedalCount } from 'src/redux/actions';
 import { isEmpty } from 'lodash';
 import React, { useMemo } from 'react';
-import useWindowDimensions from 'src/hooks/useWindowDimensions';
+import useIsMobile from 'src/hooks/useIsMobile';
 
 import {
 	BarChart,
@@ -25,9 +25,9 @@ const MedalCount = () => {
 	const isDataReady = useMemo(() => !(isEmpty(medalCount) || medalCountLoading),
 		[medalCount, medalCountLoading])
 
-	const { width } = useWindowDimensions();
+	const isMobile = useIsMobile();
 
-	const graphTrackOrientation = useMemo(() => width > 820 ? 0 : 270, [width]);
+	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
 
 	const formatDriverName = (driver) => driver.split(' ')[0];
 
