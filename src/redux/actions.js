@@ -35,3 +35,9 @@ export const setMedalCount = medalCount => ({ type: SET_MEDAL_COUNT, payload: { 
 
 export const FETCH_MEDAL_COUNT = `${prefix}/FETCH_MEDAL_COUNT`;
 export const fetchMedalCount = () => ({ type: FETCH_MEDAL_COUNT });
+
+export const SET_HIGHLIGHTS = `${prefix}/SET_HIGHLIGHTS`;
+export const setHighlights = highlights => ({ type: SET_HIGHLIGHTS, payload: { highlights } });
+
+export const FETCH_HIGHLIGHTS = `${prefix}/FETCH_HIGHLIGHTS`;
+export const fetchHighlights = () => ({ type: FETCH_HIGHLIGHTS });

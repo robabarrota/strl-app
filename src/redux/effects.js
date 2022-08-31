@@ -134,13 +134,36 @@ const fetchMedalCount = (store, action) => {
 	}
 };
 
+const fetchHighlights = (store, action) => {
+	if (action.type === actions.FETCH_HIGHLIGHTS) {
+		store.dispatch(actions.setHighlights({ loading: true }));
+		service
+			.getHighlights()
+			.then((response) => {
+				const data = response[0].data;
+
+				store.dispatch(
+					actions.setHighlights({
+						loading: false,
+						content: data,
+						error: null,
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setHighlights({ loading: false, error }));
+			});
+	}
+};
+
 const effects = [
 	fetchTrackList, 
 	fetchParticipants, 
 	fetchQualifying, 
 	fetchRaceResults, 
 	fetchFastestLaps, 
-	fetchMedalCount
+	fetchMedalCount,
+	fetchHighlights
 ];
 
 export default effects;

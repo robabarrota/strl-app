@@ -31,6 +31,11 @@ const service = {
         ...constants.sheetConfig,
         sheetsOptions: [{ id: 'Medal Count' }],
     }),
+
+    getHighlights: async () => await fetchGoogleSheetsData({
+        ...constants.sheetConfig,
+        sheetsOptions: [{ id: 'Highlights' }],
+    }),
 }
 
 export default service;
