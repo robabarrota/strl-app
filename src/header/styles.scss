@@ -10,6 +10,9 @@
 		display: flex;
 		gap: 5vw;
 		padding: 16px;
+		@media screen and (max-width: $small-screen-width) {
+			gap: 3vw;
+		}
 	}
 
 	&__dropdown-chevron {
@@ -32,6 +35,9 @@
 		display: grid;
 		gap: 3.5vw;
 		grid-auto-flow: column;
+		@media screen and (max-width: $small-screen-width) {
+			gap: 2.5vw;
+		}
 	}
 
 	&__chevron {
@@ -46,6 +52,7 @@
 	&__nav-link-label {
 		padding-right: 14px;
 		padding-bottom: 7px;
+		white-space: nowrap;
 	}
 
 	&__nav-link--active {
