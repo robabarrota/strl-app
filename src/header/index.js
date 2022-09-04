@@ -47,7 +47,7 @@ const Header = () => {
 		>
 			<div className="header__top">
 				<div className="header__responsive-bar">
-					<Link className="header__title" to="/highlights" onClick={closeHeader}>
+					<Link className="header__title" to="/" onClick={closeHeader}>
 						STRL
 					</Link>
 
