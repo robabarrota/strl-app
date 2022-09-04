@@ -51,30 +51,63 @@ const constants = {
     },
 
     carColorMap: {
-        mercedesPrimary: 'rgba(0, 210, 190, 1)',
-        mercedesSecondary: 'rgba(0, 210, 190, 0.75)',
-        redBullPrimary: 'rgba(6, 0, 239, 1)',
-        redBullSecondary: 'rgba(6, 0, 239, 0.75)',
-        ferrariPrimary: 'rgba(192, 0, 0, 1)',
-        ferrariSecondary: 'rgba(192, 0, 0, 0.75)',
-        racingPointPrimary: 'rgba(245, 150, 200, 1)',
-        racingPointSecondary: 'rgba(245, 150, 200, 0.75)',
-        williamsPrimary: 'rgba(0, 130, 250, 1)',
-        williamsSecondary: 'rgba(0, 130, 250, 0.75)',
-        renaultPrimary: 'rgba(219, 210, 0, 1)',
-        renaultSecondary: 'rgba(219, 210, 0, 0.75)',
-        mclarenPrimary: 'rgba(255, 135, 0, 1)',
-        mclarenSecondary: 'rgba(255, 135, 0, 0.75)',
-        alfaRomeoPrimary: 'rgba(150, 0, 0, 1)',
-        alfaRomeoSecondary: 'rgba(150, 0, 0, 0.75)',
-        alphaTauriPrimary: 'rgba(200, 200, 200, 1)',
-        alphaTauriSecondary: 'rgba(200, 200, 200, 0.75)',
-        haasPrimary: 'rgba(120, 120, 120, 1)',
-        haasSecondary: 'rgba(120, 120, 120, 0.75)',
+        mercedes: {
+            r: 0,
+            g: 210,
+            b:  190
+        },
+        redBull: {
+            r: 6,
+            g: 0,
+            b:  239
+        },
+        ferrari: {
+            r: 192,
+            g: 0,
+            b:  0
+        },
+        racingPoint: {
+            r: 245,
+            g: 150,
+            b:  200
+        },
+        williams: {
+            r: 0,
+            g: 130,
+            b:  250
+        },
+        renault: {
+            r: 219,
+            g: 210,
+            b:  0
+        },
+        mcLaren: {
+            r: 255,
+            g: 135,
+            b:  0
+        },
+        alfaRomeo: {
+            r: 150,
+            g: 0,
+            b:  0
+        },
+        alphaTauri: {
+            r: 200,
+            g: 200,
+            b:  200
+        },
+        haas: {
+            r: 120,
+            g: 120,
+            b:  120
+        },
     },
 
-    getCarColor: (car, isPrimaryDriver) =>
-        constants.carColorMap[`${camelCase(car)}${isPrimaryDriver ? 'Primary' : 'Secondary'}`],
+    getCarColor: (car, isPrimaryDriver, customOpacity = null) => {
+        const {r, g, b} = constants.carColorMap[camelCase(car)];
+        const a = customOpacity === null ? isPrimaryDriver ? 1 : 0.75 : customOpacity;
+        return `rgba(${r}, ${g}, ${b}, ${a})`
+    },
 
     pointMap: {
         1: 25,

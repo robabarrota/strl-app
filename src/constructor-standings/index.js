@@ -203,7 +203,7 @@ const ConstructorStandings = () => {
 		);
 	}, [stats, showStats]);
 
-	const getLineOpacity = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 1 : 0.1;
+	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
 
 	const renderLines = () => constructors.map((name) => (
@@ -211,8 +211,7 @@ const ConstructorStandings = () => {
 			key={name}
 			type="monotone"
 			dataKey={name}
-			stroke={constants.getCarColor(name, true)}
-			strokeOpacity={getLineOpacity(name)}
+			stroke={constants.getCarColor(name, true, getCustomLineOpacity(name))}
 			connectNulls
 			strokeWidth={getStrokeWidth(name)}
 		/>

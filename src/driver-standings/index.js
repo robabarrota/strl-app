@@ -209,7 +209,7 @@ const DriverStandings = () => {
 		);
 	}, [stats, showStats]);
 
-	const getLineOpacity = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 1 : 0.1;
+	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
 
 	const renderLines = () => participants.map((row) => (
@@ -217,8 +217,7 @@ const DriverStandings = () => {
 			key={row["Driver"]}
 			type="monotone"
 			dataKey={row["Driver"]}
-			stroke={constants.getCarColor(row['Car'], row['Primary'] === 'TRUE')}
-			strokeOpacity={getLineOpacity(row['Driver'])}
+			stroke={constants.getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row['Driver']))}
 			connectNulls
 			strokeWidth={getStrokeWidth(row['Driver'])}
 		/>
