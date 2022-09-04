@@ -23,6 +23,7 @@ const App = () => {
 						<Route path="standings" element={<DriverStandings />} />
 						<Route path="standings/constructor" element={<ConstructorStandings />} />
 						<Route path="medal-count" element={<MedalCount />} />
+						<Route path="highlights" element={<Highlights />} />
 						<Route path="*" element={<Highlights />} />
 					</Routes>
 				</div>
