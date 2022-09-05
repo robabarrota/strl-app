@@ -24,6 +24,7 @@ const Qualifying = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
+	const [sortBy, setSortBy] = useState(null);
 	const isMobile = useIsMobile();
 
 	const { content: qualifyingResults, loading: qualifyingLoading } = useSelector(getQualifying);
@@ -38,13 +39,30 @@ const Qualifying = () => {
 		!(isEmpty(qualifyingResults) || qualifyingLoading
 			|| isEmpty(trackList) || trackListLoading
 			|| isEmpty(participants) || participantsLoading),
-		[qualifyingResults, qualifyingLoading, trackList, trackListLoading, participants, participantsLoading])
+		[qualifyingResults, qualifyingLoading, trackList, trackListLoading, participants, participantsLoading]);
+
+	const trackSortFunction = useCallback((a, b) => {
+		if (a[sortBy.key] === 'DNS') return 1;
+		if (b[sortBy.key] === 'DNS') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? -1 : 1;
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? 1 : -1;
+		}
+		return 0;
+	}, [sortBy]);
+
+	const sortedQualifyingResults = useMemo(() => {
+		const qualifyingResultsCopy = [...qualifyingResults];
+		return sortBy === null ? qualifyingResultsCopy: [...qualifyingResultsCopy.sort(trackSortFunction)];
+	}, [qualifyingResults, trackSortFunction, sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(qualifyingResults, 'Driver');
+		const groupedDrivers = groupBy(sortedQualifyingResults, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
@@ -67,7 +85,7 @@ const Qualifying = () => {
 			}
 		})
 		return driverStats;
-	}, [qualifyingResults]);
+	}, [sortedQualifyingResults]);
 
 	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
 		Track
@@ -110,7 +128,7 @@ const Qualifying = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{participants.map((row) => (
+					{sortedQualifyingResults.map((row) => (
 						<tr key={row['Driver']}>
 							<td className={`qualifying__table-cell`}>
 								<div className='qualifying__driver-label'>
@@ -122,34 +140,57 @@ const Qualifying = () => {
 				</tbody>
 			</table>
 		</div>
-	), [participants, formatDriverName]);
+	), [sortedQualifyingResults, formatDriverName]);
 
-	const renderResultsSubTable = useMemo(() => (
-		<div className="qualifying__results-subtable-container">
-			<table>
-				<thead>
-					<tr>
-						{resultHeaders.map(header => <th key={header} className="qualifying__table-header">{formatTrackName(header)}</th>)}
-					</tr>
-				</thead>
-				<tbody>
-					{qualifyingResults.map((row) => (
-						<tr key={row['Driver']}>
-							{resultHeaders.map((header, index) =>
-								<td
-									key={`${row['Driver']}-${index}`}
-									className={`qualifying__table-cell ${getClassName(header)}`}>
-									<TableTooltip innerHtml={header}>
-										{row[header]}
-									</TableTooltip>
-								</td>
-							)}
+	const renderResultsSubTable = useMemo(() => {
+		const sortByKey = (key) => {
+			if (sortBy?.key === key) {
+				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+				if (sortBy.direction === 'asc') return setSortBy(null);
+			}
+			return setSortBy({key, direction: 'desc'});
+		}
+	
+		const getSortIcon = (track) => {
+			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+		};
+		return (
+			<div className="qualifying__results-subtable-container">
+				<table>
+					<thead>
+						<tr>
+						{resultHeaders.map(header => 
+							<th 
+								key={header} 
+								className="qualifying__table-header qualifying__table-header--sortable" 
+								onClick={() => sortByKey(header)}
+							>
+								{formatTrackName(header)} {getSortIcon(header)}
+							</th>
+						)}
 						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
-	), [resultHeaders, formatTrackName, qualifyingResults]);
+					</thead>
+					<tbody>
+						{sortedQualifyingResults.map((row) => (
+							<tr key={row['Driver']}>
+								{resultHeaders.map((header, index) =>
+									<td
+										key={`${row['Driver']}-${index}`}
+										className={`qualifying__table-cell ${getClassName(header)}`}>
+										<TableTooltip innerHtml={header}>
+											{row[header]}
+										</TableTooltip>
+									</td>
+								)}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}, [resultHeaders, formatTrackName, sortedQualifyingResults, sortBy]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="qualifying__end-subtable-container--right">
