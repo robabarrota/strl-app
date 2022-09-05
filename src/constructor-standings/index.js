@@ -23,6 +23,7 @@ const ConstructorStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
+	const [sortBy, setSortBy] = useState(null);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -39,7 +40,17 @@ const ConstructorStandings = () => {
 		!(isEmpty(raceResults) || raceResultsLoading
 			|| isEmpty(trackList) || trackListLoading
 			|| isEmpty(participants) || participantsLoading),
-		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading])
+		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading]);
+
+	const trackSortFunction = useCallback((a, b) => {
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? -1 : 1;
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? 1 : -1;
+		}
+		return 0;
+	}, [sortBy]);
 
 	const formatConstructorName = useCallback((constructor) => isMobile ? constructor : constants.carAbbreviationMap[constructor], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
@@ -64,9 +75,15 @@ const ConstructorStandings = () => {
 			if (constructorIndex === -1) acc.push(constructor);
 			return acc;
 		}, []), [raceResults, resultHeaders, fastestLaps]);
+	
+
+	const sortedConstructorPoints = useMemo(() => {
+		const constructorPointsCopy = [...constructorPoints];
+		return sortBy === null ? constructorPointsCopy: [...constructorPointsCopy.sort(trackSortFunction)];
+	}, [constructorPoints, trackSortFunction, sortBy]);
 
 	const stats = useMemo(() => 
-		constructorPoints.map(constructor => {
+		sortedConstructorPoints.map(constructor => {
 			const name = constructor['Car'];
 			let totalRaces = 0;
 			const totalPoints = Object.entries(constructor)
@@ -82,7 +99,7 @@ const ConstructorStandings = () => {
 				total: totalPoints,
 			}
 		})
-	, [constructorPoints]);
+	, [sortedConstructorPoints]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
@@ -125,7 +142,7 @@ const ConstructorStandings = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{constructors.map((name) => (
+					{sortedConstructorPoints.map(({Car: name}) => (
 						<tr key={name}>
 							<td className={`constructor-standings__table-cell`}>
 								<div className='constructor-standings__driver-label'>
@@ -137,34 +154,57 @@ const ConstructorStandings = () => {
 				</tbody>
 			</table>
 		</div>
-	), [constructors, formatConstructorName]);
+	), [sortedConstructorPoints, formatConstructorName]);
 
-	const renderResultsSubTable = useMemo(() => (
-		<div className="constructor-standings__results-subtable-container">
-			<table>
-				<thead>
-					<tr>
-						{resultHeaders.map(header => <th key={header} className="constructor-standings__table-header">{formatTrackName(header)}</th>)}
-					</tr>
-				</thead>
-				<tbody>
-					{constructorPoints.map((row) => (
-						<tr key={row['Car']}>
-							{resultHeaders.map((header, index) =>
-								<td
-									key={`${row['Car']}-${index}`}
-									className={`constructor-standings__table-cell ${getClassName(header)}`}>
-									<TableTooltip innerHtml={header}>
-										{row[header]}
-									</TableTooltip>
-								</td>
+	const renderResultsSubTable = useMemo(() => {
+		const sortByKey = (key) => {
+			if (sortBy?.key === key) {
+				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+				if (sortBy.direction === 'asc') return setSortBy(null);
+			}
+			return setSortBy({key, direction: 'desc'});
+		}
+	
+		const getSortIcon = (track) => {
+			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+		};
+		return (
+			<div className="constructor-standings__results-subtable-container">
+				<table>
+					<thead>
+						<tr>
+							{resultHeaders.map(header => 
+								<th 
+									key={header} 
+									className="constructor-standings__table-header constructor-standings__table-header--sortable" 
+									onClick={() => sortByKey(header)}
+								>
+									{formatTrackName(header)} {getSortIcon(header)}
+								</th>
 							)}
 						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
-	), [resultHeaders, formatTrackName, constructorPoints]);
+					</thead>
+					<tbody>
+						{sortedConstructorPoints.map((row) => (
+							<tr key={row['Car']}>
+								{resultHeaders.map((header, index) =>
+									<td
+										key={`${row['Car']}-${index}`}
+										className={`constructor-standings__table-cell ${getClassName(header)}`}>
+										<TableTooltip innerHtml={header}>
+											{row[header]}
+										</TableTooltip>
+									</td>
+								)}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}, [resultHeaders, formatTrackName, sortedConstructorPoints, sortBy]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
