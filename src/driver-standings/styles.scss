@@ -56,6 +56,10 @@
     &__table-header {
         padding: 18px 20px 14px;
         white-space: nowrap;
+
+        &--sortable {
+            cursor: pointer;
+        }
     }
 
     &__driver {

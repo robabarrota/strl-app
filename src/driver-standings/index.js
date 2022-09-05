@@ -23,6 +23,7 @@ const DriverStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
+	const [sortBy, setSortBy] = useState(null);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -41,8 +42,22 @@ const DriverStandings = () => {
 			|| isEmpty(participants) || participantsLoading),
 		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading])
 
-	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
+	const trackSortFunction = useCallback((a, b) => {
+		if (a[sortBy.key] === 'DNF' && b[sortBy.key] === 'DNS' ) return -1;
+		if (a[sortBy.key] === 'DNS' && b[sortBy.key] === 'DNF') return  1;
+		if (a[sortBy.key] === 'DNS') return 1;
+		if (a[sortBy.key] === 'DNF') return 1;
+		if (b[sortBy.key] === 'DNS') return -1;
+		if (b[sortBy.key] === 'DNF') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? -1 : 1;
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? 1 : -1;
+		}
+		return 0;
+	}, [sortBy]);
+
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) =>
 		Track
@@ -57,24 +72,32 @@ const DriverStandings = () => {
 		});
 		return driver;
 	}), [raceResults, resultHeaders, fastestLaps]);
+	
+	const sortedDriverPoints = useMemo(() => {
+		const driverPointsCopy = [...driverPoints];
+		return sortBy === null ? driverPointsCopy: [...driverPointsCopy.sort(trackSortFunction)];
+	}, [driverPoints, trackSortFunction, sortBy]);
+
+	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile]);
+	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile]);
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(raceResults, 'Driver');
+		const groupedDrivers = groupBy(sortedDriverPoints, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
 			let racesMissed = 0;
 			let totalRaces = 0;
-			Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
-				if (result === 'DNS') racesMissed++;
-				totalRaces++;
-			});
-			const totalRacePoints = Object.entries(driverPoints.filter((driverPoint) => driverPoint['Driver'] === driver)[0])
-				.filter(([key, value]) => key !== 'Driver')
-				.reduce((acc, [track, points]) => {
-					if (Number.isInteger(points)) acc += Number(points);
-					return acc;
-			}, 0)
+			const totalRacePoints = Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').reduce((acc, [track, points]) => {
+				if (Number.isInteger(points)) acc += Number(points);
+				return acc;
+			}, 0);
+			Object.entries(raceResults.filter((raceResult) => raceResult['Driver'] === driver)[0])
+				.filter(([key, value]) => key !== 'Driver' && key !== 'Car')
+				.forEach(([track, result]) => {
+					if (result === 'DNS') racesMissed++;
+					totalRaces++;
+				});
 
 			const average = totalRacePoints / totalRaces;
 
@@ -86,7 +109,7 @@ const DriverStandings = () => {
 			}
 		})
 		return driverStats;
-	}, [raceResults, driverPoints]);
+	}, [raceResults, sortedDriverPoints]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
@@ -127,7 +150,7 @@ const DriverStandings = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{participants.map((row) => (
+					{sortedDriverPoints.map((row) => (
 						<tr key={row['Driver']}>
 							<td className={`driver-standings__table-cell`}>
 								<div className='driver-standings__driver-label'>
@@ -139,34 +162,57 @@ const DriverStandings = () => {
 				</tbody>
 			</table>
 		</div>
-	), [participants, formatDriverName]);
+	), [sortedDriverPoints, formatDriverName]);
 
-	const renderResultsSubTable = useMemo(() => (
-		<div className="driver-standings__results-subtable-container">
-			<table>
-				<thead>
-					<tr>
-						{resultHeaders.map(header => <th key={header} className="driver-standings__table-header">{formatTrackName(header)}</th>)}
-					</tr>
-				</thead>
-				<tbody>
-					{driverPoints.map((row) => (
-						<tr key={row['Driver']}>
-							{resultHeaders.map((header, index) =>
-								<td
-									key={`${row['Driver']}-${index}`}
-									className={`driver-standings__table-cell ${getClassName(header)}`}>
-									<TableTooltip innerHtml={header}>
-										{row[header]}
-									</TableTooltip>
-								</td>
-							)}
+	const renderResultsSubTable = useMemo(() => {
+		const sortByKey = (key) => {
+			if (sortBy?.key === key) {
+				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+				if (sortBy.direction === 'asc') return setSortBy(null);
+			}
+			return setSortBy({key, direction: 'desc'});
+		}
+	
+		const getSortIcon = (track) => {
+			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+		};
+		return (
+			<div className="driver-standings__results-subtable-container">
+				<table>
+					<thead>
+						<tr>
+						{resultHeaders.map(header => 
+							<th 
+								key={header} 
+								className="driver-standings__table-header driver-standings__table-header--sortable" 
+								onClick={() => sortByKey(header)}
+							>
+								{formatTrackName(header)} {getSortIcon(header)}
+							</th>
+						)}
 						</tr>
-					))}
-				</tbody>
-			</table>
-		</div>
-	), [resultHeaders, formatTrackName, driverPoints]);
+					</thead>
+					<tbody>
+						{sortedDriverPoints.map((row) => (
+							<tr key={row['Driver']}>
+								{resultHeaders.map((header, index) =>
+									<td
+										key={`${row['Driver']}-${index}`}
+										className={`driver-standings__table-cell ${getClassName(header)}`}>
+										<TableTooltip innerHtml={header}>
+											{row[header]}
+										</TableTooltip>
+									</td>
+								)}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}, [resultHeaders, formatTrackName, sortedDriverPoints, sortBy]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
