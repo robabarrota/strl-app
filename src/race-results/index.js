@@ -24,6 +24,7 @@ const RaceResults = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
+	const [sortBy, setSortBy] = useState(null);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -47,13 +48,34 @@ const RaceResults = () => {
 			fastestLaps, fastestLapsLoading, 
 			trackList, trackListLoading, 
 			participants, participantsLoading
-		])
+		]);
+
+	const trackSortFunction = useCallback((a, b) => {
+		if (a[sortBy.key] === 'DNF' && b[sortBy.key] === 'DNS' ) return -1;
+		if (a[sortBy.key] === 'DNS' && b[sortBy.key] === 'DNF') return  1;
+		if (a[sortBy.key] === 'DNS') return 1;
+		if (a[sortBy.key] === 'DNF') return 1;
+		if (b[sortBy.key] === 'DNS') return -1;
+		if (b[sortBy.key] === 'DNF') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? -1 : 1;
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return sortBy.direction === 'desc' ? 1 : -1;
+		}
+		return 0;
+	}, [sortBy]);
+
+	const sortedRaceResults = useMemo(() => {
+		const raceResultsCopy = [...raceResults];
+		return sortBy === null ? raceResultsCopy: [...raceResultsCopy.sort(trackSortFunction)];
+	}, [raceResults, trackSortFunction, sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(raceResults, 'Driver');
+		const groupedDrivers = groupBy(sortedRaceResults, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
@@ -79,7 +101,7 @@ const RaceResults = () => {
 			}
 		})
 		return driverStats;
-	}, [raceResults, fastestLaps]);
+	}, [sortedRaceResults, fastestLaps]);
 
 	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
 		Track
@@ -123,7 +145,7 @@ const RaceResults = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{participants.map((row) => (
+					{sortedRaceResults.map((row) => (
 						<tr key={row['Driver']}>
 							<td className={`race-results__table-cell`}>
 								<div className='race-results__driver-label'>
@@ -135,22 +157,43 @@ const RaceResults = () => {
 				</tbody>
 			</table>
 		</div>
-	), [participants, formatDriverName]);
+	), [sortedRaceResults, formatDriverName]);
 
 	const renderResultsSubTable = useMemo(() => {
 		const fastestLapClass = (driverName, track) => {
 			if (fastestLaps[track] === driverName && fastestLaps[track] !== undefined) return 'race-results__fastest';
+		};
+		const sortByKey = (key) => {
+			if (sortBy?.key === key) {
+				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+				if (sortBy.direction === 'asc') return setSortBy(null);
+			}
+			return setSortBy({key, direction: 'desc'});
+		}
+	
+		const getSortIcon = (track) => {
+			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
 		};
 		return (
 			<div className="race-results__results-subtable-container">
 				<table>
 					<thead>
 						<tr>
-							{resultHeaders.map(header => <th key={header} className="race-results__table-header">{formatTrackName(header)}</th>)}
+							{resultHeaders.map(header => 
+								<th 
+									key={header} 
+									className="race-results__table-header race-results__table-header--sortable" 
+									onClick={() => sortByKey(header)}
+								>
+									{formatTrackName(header)} {getSortIcon(header)}
+								</th>
+							)}
 						</tr>
 					</thead>
 					<tbody>
-						{raceResults.map((row) => (
+						{sortedRaceResults.map((row) => (
 							<tr key={row['Driver']}>
 								{resultHeaders.map((header, index) =>
 									<td
@@ -167,7 +210,7 @@ const RaceResults = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, raceResults, fastestLaps]);
+	}, [resultHeaders, formatTrackName, sortedRaceResults, fastestLaps, sortBy]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="race-results__end-subtable-container--right">
