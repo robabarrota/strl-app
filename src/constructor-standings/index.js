@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getRaceResults, getFastestLaps, getTrackList, getParticipants } from 'src/redux/selectors';
 import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, last, isNaN } from 'lodash';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
 import constants from 'src/utils/constants';
@@ -19,11 +19,18 @@ import {
 	ResponsiveContainer
 } from "recharts";
 
+const statHeaders = [
+	{key: 'total', label: 'TOTAL'},
+	{key: 'average', label: 'AVG'},
+];
+
 const ConstructorStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
 	const [sortBy, setSortBy] = useState(null);
+	const [sortedConstructorPoints, setSortedConstructorPoints] = useState([]);
+	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -44,10 +51,29 @@ const ConstructorStandings = () => {
 
 	const trackSortFunction = useCallback((a, b) => {
 		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
-			return sortBy.direction === 'desc' ? -1 : 1;
+			return sortBy.direction === 'desc' ? 1 : -1;
 		}
 		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
-			return sortBy.direction === 'desc' ? 1 : -1;
+			return sortBy.direction === 'desc' ? -1 : 1;
+		}
+		return 0;
+	}, [sortBy]);
+
+	const statSortFunction = useCallback((a, b) => {
+		const getCorrectSortValue = (initialValue) => {
+			let sortModifier = 1;
+			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
+			sortModifier *= sortBy.key === 'racesMissed' ? -1 : 1;
+
+			return initialValue * sortModifier;
+		};
+		if (a[sortBy.key] === '-') return 1;
+		if (b[sortBy.key] === '-') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(-1);
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(1);
 		}
 		return 0;
 	}, [sortBy]);
@@ -75,15 +101,9 @@ const ConstructorStandings = () => {
 			if (constructorIndex === -1) acc.push(constructor);
 			return acc;
 		}, []), [raceResults, resultHeaders, fastestLaps]);
-	
-
-	const sortedConstructorPoints = useMemo(() => {
-		const constructorPointsCopy = [...constructorPoints];
-		return sortBy === null ? constructorPointsCopy: [...constructorPointsCopy.sort(trackSortFunction)];
-	}, [constructorPoints, trackSortFunction, sortBy]);
 
 	const stats = useMemo(() => 
-		sortedConstructorPoints.map(constructor => {
+		constructorPoints.map(constructor => {
 			const name = constructor['Car'];
 			let totalRaces = 0;
 			const totalPoints = Object.entries(constructor)
@@ -99,7 +119,27 @@ const ConstructorStandings = () => {
 				total: totalPoints,
 			}
 		})
-	, [sortedConstructorPoints]);
+	, [constructorPoints]);
+
+	useEffect(() => {
+		const constructorPointsCopy = [...constructorPoints];
+		const statsCopy = [...stats];
+		if (sortBy === null) {
+			setSortedStats(statsCopy);
+			setSortedConstructorPoints(constructorPointsCopy);
+		}
+		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+			const sortedStats =  [...statsCopy.sort(statSortFunction)]
+			setSortedStats(sortedStats);
+			const sortedConstructors = sortedStats.map(stat => stat.constructor);
+			setSortedConstructorPoints([...constructorPointsCopy.sort((a, b) => sortedConstructors.indexOf(a['Car']) - sortedConstructors.indexOf(b['Car']))]);
+		} else {
+			const sortedConstructorPointsCopy = [...constructorPointsCopy.sort(trackSortFunction)];
+			setSortedConstructorPoints(sortedConstructorPointsCopy);
+			const sortedConstructors = sortedConstructorPointsCopy.map((raceResult) => raceResult['Car']);
+			setSortedStats([...statsCopy.sort((a, b) => sortedConstructors.indexOf(a.constructor) - sortedConstructors.indexOf(b.constructor))]);
+		}
+	}, [constructorPoints, trackSortFunction, sortBy, statSortFunction, stats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
@@ -132,7 +172,8 @@ const ConstructorStandings = () => {
 		if (header === 'Driver') return 'constructor-standings__driver';
 		if (header === 'Car') return 'constructor-standings__car';
 		return 'constructor-standings__track'
-	}
+	};
+
 	const renderConstructorSubTable = useMemo(() => (
 		<div className="constructor-standings__end-subtable-container--left">
 			<table>
@@ -156,20 +197,21 @@ const ConstructorStandings = () => {
 		</div>
 	), [sortedConstructorPoints, formatConstructorName]);
 
-	const renderResultsSubTable = useMemo(() => {
-		const sortByKey = (key) => {
-			if (sortBy?.key === key) {
-				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
-				if (sortBy.direction === 'asc') return setSortBy(null);
-			}
-			return setSortBy({key, direction: 'desc'});
+	const sortByKey = useCallback((key) => {
+		if (sortBy?.key === key) {
+			if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+			if (sortBy.direction === 'asc') return setSortBy(null);
 		}
-	
-		const getSortIcon = (track) => {
-			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
-			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
-			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
-		};
+		return setSortBy({key, direction: 'desc'});
+	}, [sortBy, setSortBy]);
+
+	const getSortIcon = useCallback((track) => {
+		if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+		if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+	}, [sortBy]);
+
+	const renderResultsSubTable = useMemo(() => {
 		return (
 			<div className="constructor-standings__results-subtable-container">
 				<table>
@@ -204,19 +246,26 @@ const ConstructorStandings = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedConstructorPoints, sortBy]);
+	}, [resultHeaders, formatTrackName, sortedConstructorPoints, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
 			<table>
 				<thead>
 					<tr>
-						<th className="constructor-standings__table-header">TOTAL</th>
-						<th className="constructor-standings__table-header">AVG</th>
+						{statHeaders.map((header) => 
+							<th
+								key={header.key}
+								className="constructor-standings__table-header constructor-standings__table-header--sortable"
+								onClick={() => sortByKey(header.key)}
+							>
+								{header.label} {getSortIcon(header.key)}
+							</th>
+						)}
 					</tr>
 				</thead>
 				<tbody>
-					{stats.map((constructorStats) => (
+					{sortedStats.map((constructorStats) => (
 						<tr key={constructorStats.constructor}>
 							<td
 								className={`constructor-standings__table-cell`}>
@@ -241,7 +290,7 @@ const ConstructorStandings = () => {
 				{showStats && renderStatsSubTableData()}
 			</div>
 		);
-	}, [stats, showStats]);
+	}, [sortedStats, showStats, sortByKey, getSortIcon]);
 
 	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getQualifying, getTrackList, getParticipants } from 'src/redux/selectors';
 import { fetchQualifying, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, groupBy, first } from 'lodash';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
 import constants from 'src/utils/constants';
@@ -20,11 +20,19 @@ import {
 	ResponsiveContainer
 } from "recharts";
 
+const statHeaders = [
+	{key: 'average', label: 'AVG'},
+	{key: 'racesMissed', label: 'DNS\'s'},
+	{key: 'poles', label: 'POLES'},
+];
+
 const Qualifying = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
 	const [sortBy, setSortBy] = useState(null);
+	const [sortedQualifyingResults, setSortedQualifyingResults] = useState([]);
+	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
 	const { content: qualifyingResults, loading: qualifyingLoading } = useSelector(getQualifying);
@@ -53,26 +61,42 @@ const Qualifying = () => {
 		return 0;
 	}, [sortBy]);
 
-	const sortedQualifyingResults = useMemo(() => {
-		const qualifyingResultsCopy = [...qualifyingResults];
-		return sortBy === null ? qualifyingResultsCopy: [...qualifyingResultsCopy.sort(trackSortFunction)];
-	}, [qualifyingResults, trackSortFunction, sortBy]);
+	const statSortFunction = useCallback((a, b) => {
+		const getCorrectSortValue = (initialValue) => {
+			let sortModifier = 1;
+			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
+			sortModifier *= sortBy.key === 'average' || sortBy.key === 'racesMissed' ? -1 : 1;
+
+			return initialValue * sortModifier;
+		};
+		if (a[sortBy.key] === '-') return 1;
+		if (b[sortBy.key] === '-') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(-1);
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(1);
+		}
+		return 0;
+	}, [sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(sortedQualifyingResults, 'Driver');
+		const groupedDrivers = groupBy(qualifyingResults, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
 			let racesMissed = 0;
 			let totalQualifying = 0;
 			let totalRaces = 0;
+			let poles = 0;
 			Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
 				if (result === 'DNS') racesMissed++;
 
 				if (result !== 'DNF' && result !== 'DNS') totalQualifying += parseInt(result);
+				if (parseInt(result) === 1) poles ++;
 				totalRaces++;
 			});
 
@@ -81,11 +105,32 @@ const Qualifying = () => {
 			return {
 				driver,
 				average: average === 0 ? '-' : average,
-				racesMissed
+				racesMissed,
+				poles,
 			}
 		})
 		return driverStats;
-	}, [sortedQualifyingResults]);
+	}, [qualifyingResults]);
+
+	useEffect(() => {
+		const qualifyingResultsCopy = [...qualifyingResults];
+		const statsCopy = [...stats];
+		if (sortBy === null) {
+			setSortedStats(statsCopy);
+			setSortedQualifyingResults(qualifyingResultsCopy);
+		}
+		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+			const sortedStats =  [...statsCopy.sort(statSortFunction)]
+			setSortedStats(sortedStats);
+			const sortedDrivers = sortedStats.map(stat => stat.driver);
+			setSortedQualifyingResults([...qualifyingResultsCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
+		} else {
+			const sortedQualifyingResults = [...qualifyingResultsCopy.sort(trackSortFunction)];
+			setSortedQualifyingResults(sortedQualifyingResults);
+			const sortedDrivers = sortedQualifyingResults.map((qualifyingResult) => qualifyingResult['Driver']);
+			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+		}
+	}, [qualifyingResults, trackSortFunction, sortBy, statSortFunction, stats]);
 
 	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
 		Track
@@ -142,20 +187,21 @@ const Qualifying = () => {
 		</div>
 	), [sortedQualifyingResults, formatDriverName]);
 
-	const renderResultsSubTable = useMemo(() => {
-		const sortByKey = (key) => {
-			if (sortBy?.key === key) {
-				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
-				if (sortBy.direction === 'asc') return setSortBy(null);
-			}
-			return setSortBy({key, direction: 'desc'});
+	const sortByKey = useCallback((key) => {
+		if (sortBy?.key === key) {
+			if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+			if (sortBy.direction === 'asc') return setSortBy(null);
 		}
-	
-		const getSortIcon = (track) => {
-			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
-			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
-			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
-		};
+		return setSortBy({key, direction: 'desc'});
+	}, [sortBy, setSortBy]);
+
+	const getSortIcon = useCallback((track) => {
+		if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+		if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+	}, [sortBy]);
+
+	const renderResultsSubTable = useMemo(() => {
 		return (
 			<div className="qualifying__results-subtable-container">
 				<table>
@@ -190,7 +236,7 @@ const Qualifying = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedQualifyingResults, sortBy]);
+	}, [resultHeaders, formatTrackName, sortedQualifyingResults, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="qualifying__end-subtable-container--right">
@@ -202,12 +248,19 @@ const Qualifying = () => {
 				<table>
 					<thead>
 						<tr>
-							<th className="qualifying__table-header">AVG</th>
-							<th className="qualifying__table-header">DNS's</th>
+							{statHeaders.map((header) => 
+								<th
+									key={header.key}
+									className="qualifying__table-header qualifying__table-header--sortable"
+									onClick={() => sortByKey(header.key)}
+								>
+									{header.label} {getSortIcon(header.key)}
+								</th>
+							)}
 						</tr>
 					</thead>
 					<tbody>
-						{stats.map((driverStats) => (
+						{sortedStats.map((driverStats) => (
 							<tr key={driverStats.driver}>
 								<td
 									className={`qualifying__table-cell`}>
@@ -217,13 +270,17 @@ const Qualifying = () => {
 									className={`qualifying__table-cell`}>
 									{driverStats.racesMissed}
 								</td>
+								<td
+									className={`qualifying__table-cell`}>
+									{driverStats.poles}
+								</td>
 							</tr>
 						))}
 					</tbody>
 				</table>
 			)}
 		</div>
-	), [stats, showStats]);
+	), [sortedStats, showStats, sortByKey, getSortIcon]);
 
 	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;

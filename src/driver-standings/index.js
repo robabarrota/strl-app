@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getRaceResults, getFastestLaps, getTrackList, getParticipants } from 'src/redux/selectors';
 import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, groupBy, first, last, isNaN } from 'lodash';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
 import constants from 'src/utils/constants';
@@ -19,11 +19,19 @@ import {
 	ResponsiveContainer
 } from "recharts";
 
+const statHeaders = [
+	{key: 'total', label: 'TOTAL'},
+	{key: 'average', label: 'AVG'},
+	{key: 'racesMissed', label: 'DNS\'s'},
+];
+
 const DriverStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
 	const [sortBy, setSortBy] = useState(null);
+	const [sortedDriverPoints, setSortedDriverPoints] = useState([]);
+	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -43,21 +51,33 @@ const DriverStandings = () => {
 		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading])
 
 	const trackSortFunction = useCallback((a, b) => {
-		if (a[sortBy.key] === 'DNF' && b[sortBy.key] === 'DNS' ) return -1;
-		if (a[sortBy.key] === 'DNS' && b[sortBy.key] === 'DNF') return  1;
-		if (a[sortBy.key] === 'DNS') return 1;
-		if (a[sortBy.key] === 'DNF') return 1;
-		if (b[sortBy.key] === 'DNS') return -1;
-		if (b[sortBy.key] === 'DNF') return -1;
 		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
-			return sortBy.direction === 'desc' ? -1 : 1;
+			return sortBy.direction === 'desc' ? 1 : -1;
 		}
 		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
-			return sortBy.direction === 'desc' ? 1 : -1;
+			return sortBy.direction === 'desc' ? -1 : 1;
 		}
 		return 0;
 	}, [sortBy]);
 
+	const statSortFunction = useCallback((a, b) => {
+		const getCorrectSortValue = (initialValue) => {
+			let sortModifier = 1;
+			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
+			sortModifier *= sortBy.key === 'racesMissed' ? -1 : 1;
+
+			return initialValue * sortModifier;
+		};
+		if (a[sortBy.key] === '-') return 1;
+		if (b[sortBy.key] === '-') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(-1);
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(1);
+		}
+		return 0;
+	}, [sortBy]);
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) =>
 		Track
@@ -72,17 +92,12 @@ const DriverStandings = () => {
 		});
 		return driver;
 	}), [raceResults, resultHeaders, fastestLaps]);
-	
-	const sortedDriverPoints = useMemo(() => {
-		const driverPointsCopy = [...driverPoints];
-		return sortBy === null ? driverPointsCopy: [...driverPointsCopy.sort(trackSortFunction)];
-	}, [driverPoints, trackSortFunction, sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile]);
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile]);
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(sortedDriverPoints, 'Driver');
+		const groupedDrivers = groupBy(driverPoints, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
@@ -109,7 +124,27 @@ const DriverStandings = () => {
 			}
 		})
 		return driverStats;
-	}, [raceResults, sortedDriverPoints]);
+	}, [raceResults, driverPoints]);
+
+	useEffect(() => {
+		const driverPointsCopy = [...driverPoints];
+		const statsCopy = [...stats];
+		if (sortBy === null) {
+			setSortedStats(statsCopy);
+			setSortedDriverPoints(driverPointsCopy);
+		}
+		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+			const sortedStats =  [...statsCopy.sort(statSortFunction)]
+			setSortedStats(sortedStats);
+			const sortedDrivers = sortedStats.map(stat => stat.driver);
+			setSortedDriverPoints([...driverPointsCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
+		} else {
+			const sortedDriverPoints = [...driverPointsCopy.sort(trackSortFunction)];
+			setSortedDriverPoints(sortedDriverPoints);
+			const sortedDrivers = sortedDriverPoints.map((raceResult) => raceResult['Driver']);
+			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+		}
+	}, [driverPoints, trackSortFunction, sortBy, statSortFunction, stats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
@@ -140,7 +175,8 @@ const DriverStandings = () => {
 		if (header === 'Driver') return 'driver-standings__driver';
 		if (header === 'Car') return 'driver-standings__car';
 		return 'driver-standings__track'
-	}
+	};
+
 	const renderDriverSubTable = useMemo(() => (
 		<div className="driver-standings__end-subtable-container--left">
 			<table>
@@ -164,20 +200,21 @@ const DriverStandings = () => {
 		</div>
 	), [sortedDriverPoints, formatDriverName]);
 
-	const renderResultsSubTable = useMemo(() => {
-		const sortByKey = (key) => {
-			if (sortBy?.key === key) {
-				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
-				if (sortBy.direction === 'asc') return setSortBy(null);
-			}
-			return setSortBy({key, direction: 'desc'});
+	const sortByKey = useCallback((key) => {
+		if (sortBy?.key === key) {
+			if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+			if (sortBy.direction === 'asc') return setSortBy(null);
 		}
-	
-		const getSortIcon = (track) => {
-			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
-			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
-			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
-		};
+		return setSortBy({key, direction: 'desc'});
+	}, [sortBy, setSortBy]);
+
+	const getSortIcon = useCallback((track) => {
+		if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+		if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+	}, [sortBy]);
+
+	const renderResultsSubTable = useMemo(() => {
 		return (
 			<div className="driver-standings__results-subtable-container">
 				<table>
@@ -212,20 +249,26 @@ const DriverStandings = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedDriverPoints, sortBy]);
+	}, [resultHeaders, formatTrackName, sortedDriverPoints, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
 			<table>
 				<thead>
 					<tr>
-						<th className="driver-standings__table-header">TOTAL</th>
-						<th className="driver-standings__table-header">AVG</th>
-						<th className="driver-standings__table-header">DNS's</th>
+						{statHeaders.map((header) => 
+							<th
+								key={header.key}
+								className="driver-standings__table-header driver-standings__table-header--sortable"
+								onClick={() => sortByKey(header.key)}
+							>
+								{header.label} {getSortIcon(header.key)}
+							</th>
+						)}
 					</tr>
 				</thead>
 				<tbody>
-					{stats.map((driverStats) => (
+					{sortedStats.map((driverStats) => (
 						<tr key={driverStats.driver}>
 							<td
 								className={`driver-standings__table-cell`}>
@@ -253,7 +296,7 @@ const DriverStandings = () => {
 				{showStats && renderStatsSubTableData()}
 			</div>
 		);
-	}, [stats, showStats]);
+	}, [sortedStats, showStats, sortByKey, getSortIcon]);
 
 	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;

@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getRaceResults, getFastestLaps, getTrackList, getParticipants } from 'src/redux/selectors';
 import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, groupBy, first } from 'lodash';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
 import constants from 'src/utils/constants';
@@ -20,11 +20,19 @@ import {
 	ResponsiveContainer
 } from "recharts";
 
+const statHeaders = [
+	{key: 'average', label: 'AVG'},
+	{key: 'racesMissed', label: 'DNS\'s'},
+	{key: 'fastestLapsCount', label: <i className="fa-solid fa-stopwatch race-results__fastest-icon"></i>},
+];
+
 const RaceResults = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
 	const [sortBy, setSortBy] = useState(null);
+	const [sortedRaceResults, setSortedRaceResults] = useState([]);
+	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
@@ -66,16 +74,30 @@ const RaceResults = () => {
 		return 0;
 	}, [sortBy]);
 
-	const sortedRaceResults = useMemo(() => {
-		const raceResultsCopy = [...raceResults];
-		return sortBy === null ? raceResultsCopy: [...raceResultsCopy.sort(trackSortFunction)];
-	}, [raceResults, trackSortFunction, sortBy]);
+	const statSortFunction = useCallback((a, b) => {
+		const getCorrectSortValue = (initialValue) => {
+			let sortModifier = 1;
+			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
+			sortModifier *= sortBy.key === 'average' || sortBy.key === 'racesMissed' ? -1 : 1;
+
+			return initialValue * sortModifier;
+		};
+		if (a[sortBy.key] === '-') return 1;
+		if (b[sortBy.key] === '-') return -1;
+		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(-1);
+		}
+		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+			return getCorrectSortValue(1);
+		}
+		return 0;
+	}, [sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
 
 	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(sortedRaceResults, 'Driver');
+		const groupedDrivers = groupBy(raceResults, 'Driver');
 		if (isEmpty(groupedDrivers)) return [];
 		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
 			const results = first(driverResults);
@@ -84,12 +106,19 @@ const RaceResults = () => {
 			let totalRaces = 0;
 			Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
 				if (result === 'DNS') racesMissed++;
-
+				if (result === 'DNF') {
+					const activeDrivers = raceResults.reduce((acc, raceResult) => {
+						if (raceResult[track] !== 'DNS') acc++;
+						return acc;
+					}, 0);
+					totalRaceFinish+= activeDrivers;
+				}
 				if (result !== 'DNF' && result !== 'DNS') totalRaceFinish += parseInt(result);
 				totalRaces++;
 			});
 			
-			const average = totalRaceFinish / totalRaces;
+			const calculatedAverage = totalRaceFinish / (totalRaces - racesMissed);
+			const average = isNaN(calculatedAverage) ? '-' : calculatedAverage;
 
 			const fastestLapsCount = Object.values(fastestLaps).filter(fastestDriver => fastestDriver === driver).length;
 
@@ -101,7 +130,27 @@ const RaceResults = () => {
 			}
 		})
 		return driverStats;
-	}, [sortedRaceResults, fastestLaps]);
+	}, [raceResults, fastestLaps]);
+
+	useEffect(() => {
+		const raceResultsCopy = [...raceResults];
+		const statsCopy = [...stats];
+		if (sortBy === null) {
+			setSortedStats(statsCopy);
+			setSortedRaceResults(raceResultsCopy);
+		}
+		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+			const sortedStats =  [...statsCopy.sort(statSortFunction)]
+			setSortedStats(sortedStats);
+			const sortedDrivers = sortedStats.map(stat => stat.driver);
+			setSortedRaceResults([...raceResultsCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
+		} else {
+			const sortedRaceResults = [...raceResultsCopy.sort(trackSortFunction)];
+			setSortedRaceResults(sortedRaceResults);
+			const sortedDrivers = sortedRaceResults.map((raceResult) => raceResult['Driver']);
+			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+		}
+	}, [raceResults, trackSortFunction, sortBy, statSortFunction, stats]);
 
 	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
 		Track
@@ -159,22 +208,23 @@ const RaceResults = () => {
 		</div>
 	), [sortedRaceResults, formatDriverName]);
 
+	const sortByKey = useCallback((key) => {
+		if (sortBy?.key === key) {
+			if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
+			if (sortBy.direction === 'asc') return setSortBy(null);
+		}
+		return setSortBy({key, direction: 'desc'});
+	}, [sortBy, setSortBy]);
+
+	const getSortIcon = useCallback((track) => {
+		if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
+		if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
+		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
+	}, [sortBy]);
+
 	const renderResultsSubTable = useMemo(() => {
 		const fastestLapClass = (driverName, track) => {
 			if (fastestLaps[track] === driverName && fastestLaps[track] !== undefined) return 'race-results__fastest';
-		};
-		const sortByKey = (key) => {
-			if (sortBy?.key === key) {
-				if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
-				if (sortBy.direction === 'asc') return setSortBy(null);
-			}
-			return setSortBy({key, direction: 'desc'});
-		}
-	
-		const getSortIcon = (track) => {
-			if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
-			if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
-			if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
 		};
 		return (
 			<div className="race-results__results-subtable-container">
@@ -210,7 +260,7 @@ const RaceResults = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedRaceResults, fastestLaps, sortBy]);
+	}, [resultHeaders, formatTrackName, sortedRaceResults, fastestLaps, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="race-results__end-subtable-container--right">
@@ -222,13 +272,19 @@ const RaceResults = () => {
 				<table>
 					<thead>
 						<tr>
-							<th className="race-results__table-header">AVG</th>
-							<th className="race-results__table-header">DNS's</th>
-							<th className="race-results__table-header"><i className="fa-solid fa-stopwatch race-results__fastest-icon"></i></th>
+							{statHeaders.map((header) => 
+								<th
+									key={header.key}
+									className="race-results__table-header race-results__table-header--sortable"
+									onClick={() => sortByKey(header.key)}
+								>
+									{header.label} {getSortIcon(header.key)}
+								</th>
+							)}
 						</tr> 
 					</thead>
 					<tbody>
-						{stats.map((driverStats) => (
+						{sortedStats.map((driverStats) => (
 							<tr key={driverStats.driver}>
 								<td
 									className={`race-results__table-cell`}>
@@ -248,7 +304,7 @@ const RaceResults = () => {
 				</table>
 			)}
 		</div>
-	), [stats, showStats]);
+	), [sortedStats, showStats, sortByKey, getSortIcon]);
 
 	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? null : graphFilter?.includes(item) ? 1 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
