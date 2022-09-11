@@ -6,11 +6,8 @@ import { isEmpty, groupBy, first } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
-import {
-	trackAbbreviationMap,
-	getCarColor,
-} from 'src/utils/constants';
-import { round } from 'src/utils/utils';
+import { trackAbbreviationMap } from 'src/utils/constants';
+import { round, getCarColor } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import { isNaN } from 'lodash';
 import {

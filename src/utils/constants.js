@@ -1,5 +1,3 @@
-import { camelCase } from 'lodash';
-
 const sheetKey = 'AIzaSyDPv1vWH_NZcLchfs36RetwSC1c99xkFm8';
 const sheetId = '1r8vXuLNfUxgmRlQ67YKBzC6gc22irsdzlHI6DSyyWPc';
 
@@ -101,12 +99,6 @@ const carColorMap = {
     },
 };
 
-const getCarColor = (car, isPrimaryDriver, customOpacity = null) => {
-    const {r, g, b} = carColorMap[camelCase(car)];
-    const a = customOpacity === null ? isPrimaryDriver ? 1 : 0.75 : customOpacity;
-    return `rgba(${r}, ${g}, ${b}, ${a})`
-};
-
 const pointMap = {
     1: 25,
     2: 18,
@@ -140,6 +132,5 @@ export {
     carAbbreviationMap,
     trackAbbreviationMap,
     carColorMap,
-    getCarColor,
     pointMap,
 };

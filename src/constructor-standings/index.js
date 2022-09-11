@@ -9,10 +9,9 @@ import useIsMobile from 'src/hooks/useIsMobile';
 import {
 	carAbbreviationMap,
 	trackAbbreviationMap,
-	pointMap,
-	getCarColor
+	pointMap
 } from 'src/utils/constants';
-import { round } from 'src/utils/utils';
+import { round, getCarColor } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import {
 	LineChart,
