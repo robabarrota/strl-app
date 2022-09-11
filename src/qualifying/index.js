@@ -10,6 +10,7 @@ import {
 	trackAbbreviationMap,
 	getCarColor
 } from 'src/utils/constants';
+import { round } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import { isNaN } from 'lodash';
 import {
@@ -267,7 +268,9 @@ const Qualifying = () => {
 							<tr key={driverStats.driver}>
 								<td
 									className={`qualifying__table-cell`}>
-									{driverStats.average}
+									<TableTooltip innerHtml={round(driverStats.average, 8)} hangLeft>
+										{round(driverStats.average)}
+									</TableTooltip>
 								</td>
 								<td
 									className={`qualifying__table-cell`}>

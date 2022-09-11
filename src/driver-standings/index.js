@@ -11,7 +11,7 @@ import {
 	trackAbbreviationMap,
 	getCarColor
 } from 'src/utils/constants';
-import {round} from 'src/utils/utils';
+import { round } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import {
 	LineChart,
@@ -281,7 +281,8 @@ const DriverStandings = () => {
 							</td>
 							<td
 								className={`driver-standings__table-cell`}>
-								{round(driverStats.average)}
+								<TableTooltip innerHtml={round(driverStats.average, 8)}>
+									{round(driverStats.average)}
 								</TableTooltip>
 							</td>
 							<td

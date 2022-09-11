@@ -12,6 +12,7 @@ import {
 	pointMap,
 	getCarColor
 } from 'src/utils/constants';
+import { round } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import {
 	LineChart,
@@ -278,7 +279,9 @@ const ConstructorStandings = () => {
 							</td>
 							<td
 								className={`constructor-standings__table-cell`}>
-								{constructorStats.average}
+								<TableTooltip innerHtml={round(constructorStats.average, 8)} hangLeft>
+									{round(constructorStats.average)}
+								</TableTooltip>
 							</td>
 						</tr>
 					))}
