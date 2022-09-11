@@ -38,9 +38,6 @@ const MedalCount = () => {
 		return sortBy === null ? medalCountCopy: [...medalCountCopy.sort(medalSortFunction)];
 	}, [medalCount, medalSortFunction, sortBy]);
 
-	const isDataReady = useMemo(() => !(isEmpty(medalCount) || medalCountLoading),
-		[medalCount, medalCountLoading])
-
 	const formatDriverName = (driver) => driver.split(' ')[0];
 
 	const sortByKey = (key) => {
@@ -131,6 +128,8 @@ const MedalCount = () => {
 			</BarChart>
 		</ResponsiveContainer >
 	);
+
+	const isDataReady = !isEmpty(medalCount) && !medalCountLoading;
 
 	if (isDataReady) {
 		return (

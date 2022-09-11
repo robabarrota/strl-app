@@ -49,12 +49,6 @@ const ConstructorStandings = () => {
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
-	const isDataReady = useMemo(() =>
-		!(isEmpty(raceResults) || raceResultsLoading
-			|| isEmpty(trackList) || trackListLoading
-			|| isEmpty(participants) || participantsLoading),
-		[raceResults, raceResultsLoading, trackList, trackListLoading, participants, participantsLoading]);
-
 	const trackSortFunction = useCallback((a, b) => {
 		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
 			return sortBy.direction === 'desc' ? 1 : -1;
@@ -361,6 +355,11 @@ const ConstructorStandings = () => {
 		</ResponsiveContainer >
 	);
 
+	const isDataReady = (
+		!isEmpty(sortedConstructorPoints) && !raceResultsLoading
+		&& !isEmpty(trackList) && !trackListLoading
+		&& !isEmpty(participants) && !participantsLoading
+	);
 
 	return (
 		<div className="constructor-standings">

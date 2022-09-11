@@ -47,12 +47,6 @@ const Qualifying = () => {
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
-	const isDataReady = useMemo(() =>
-		!(isEmpty(qualifyingResults) || qualifyingLoading
-			|| isEmpty(trackList) || trackListLoading
-			|| isEmpty(participants) || participantsLoading),
-		[qualifyingResults, qualifyingLoading, trackList, trackListLoading, participants, participantsLoading]);
-
 	const trackSortFunction = useCallback((a, b) => {
 		if (a[sortBy.key] === 'DNS') return 1;
 		if (b[sortBy.key] === 'DNS') return -1;
@@ -349,6 +343,11 @@ const Qualifying = () => {
 		</ResponsiveContainer >
 	);
 
+	const isDataReady = (
+		!isEmpty(sortedQualifyingResults) && !qualifyingLoading
+		&& !isEmpty(trackList) && !trackListLoading
+		&& !isEmpty(participants) && !participantsLoading
+	);
 
 	return (
 		<div className="qualifying">

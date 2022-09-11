@@ -49,19 +49,6 @@ const RaceResults = () => {
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
-	const isDataReady = useMemo(() =>
-		!(
-			isEmpty(raceResults) || raceResultsLoading
-			|| isEmpty(fastestLaps) || fastestLapsLoading
-			|| isEmpty(trackList) || trackListLoading
-			|| isEmpty(participants) || participantsLoading),
-		[
-			raceResults, raceResultsLoading, 
-			fastestLaps, fastestLapsLoading, 
-			trackList, trackListLoading, 
-			participants, participantsLoading
-		]);
-
 	const trackSortFunction = useCallback((a, b) => {
 		if (a[sortBy.key] === 'DNF' && b[sortBy.key] === 'DNS' ) return -1;
 		if (a[sortBy.key] === 'DNS' && b[sortBy.key] === 'DNF') return  1;
@@ -373,6 +360,12 @@ const RaceResults = () => {
 		</ResponsiveContainer >
 	);
 
+	const isDataReady = (
+		!isEmpty(sortedRaceResults) && !raceResultsLoading
+		&& !isEmpty(fastestLaps) && !fastestLapsLoading
+		&& !isEmpty(trackList) && !trackListLoading
+		&& !isEmpty(participants) && !participantsLoading
+	);
 
 	return (
 		<div className="race-results">
