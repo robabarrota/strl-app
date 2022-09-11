@@ -6,7 +6,12 @@ import { isEmpty, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
-import constants from 'src/utils/constants';
+import {
+	carAbbreviationMap,
+	trackAbbreviationMap,
+	pointMap,
+	getCarColor
+} from 'src/utils/constants';
 import TableTooltip from 'src/components/table-tooltip';
 import {
 	LineChart,
@@ -78,8 +83,8 @@ const ConstructorStandings = () => {
 		return 0;
 	}, [sortBy]);
 
-	const formatConstructorName = useCallback((constructor) => isMobile ? constructor : constants.carAbbreviationMap[constructor], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
+	const formatConstructorName = useCallback((constructor) => isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
+	const formatTrackName = useCallback((track) => isMobile ? track : trackAbbreviationMap[track], [isMobile])
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) => Track), [trackList]);
 
@@ -90,7 +95,7 @@ const ConstructorStandings = () => {
 			const constructor = { 'Car': row['Car'] };
 			const constructorIndex = acc.findIndex(constructors => constructors['Car'] === row['Car']);
 			resultHeaders.forEach(header => {
-				let racePoints = constants.pointMap[row[header]];
+				let racePoints = pointMap[row[header]];
 				if (racePoints && fastestLaps[header] === row['Driver'] && row[header] <= 10) racePoints += 1;
 				if (constructorIndex > -1 && racePoints !== undefined) {
 					acc[constructorIndex][header] += racePoints;  
@@ -300,7 +305,7 @@ const ConstructorStandings = () => {
 			key={name}
 			type="monotone"
 			dataKey={name}
-			stroke={constants.getCarColor(name, true, getCustomLineOpacity(name))}
+			stroke={getCarColor(name, true, getCustomLineOpacity(name))}
 			connectNulls
 			strokeWidth={getStrokeWidth(name)}
 		/>

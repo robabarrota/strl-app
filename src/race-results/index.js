@@ -6,7 +6,11 @@ import { isEmpty, groupBy, first } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
-import constants from 'src/utils/constants';
+import {
+	trackAbbreviationMap,
+	getCarColor,
+} from 'src/utils/constants';
+import {round} from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import { isNaN } from 'lodash';
 import {
@@ -94,7 +98,7 @@ const RaceResults = () => {
 	}, [sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : constants.trackAbbreviationMap[track], [isMobile])
+	const formatTrackName = useCallback((track) => isMobile ? track : trackAbbreviationMap[track], [isMobile])
 
 	const stats = useMemo(() => {
 		const groupedDrivers = groupBy(raceResults, 'Driver');
@@ -314,7 +318,7 @@ const RaceResults = () => {
 			key={row["Driver"]}
 			type="monotone"
 			dataKey={row["Driver"]}
-			stroke={constants.getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row['Driver']))}
+			stroke={getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row['Driver']))}
 			connectNulls
 			strokeWidth={getStrokeWidth(row['Driver'])}
 		/>

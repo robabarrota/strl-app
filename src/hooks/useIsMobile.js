@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import constants from '../utils/constants';
+import { mobileWidth } from '../utils/constants';
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
@@ -21,5 +21,5 @@ export default function useIsMobile() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    return windowDimensions.width > constants.mobileWidth;
+    return windowDimensions.width > mobileWidth;
 }

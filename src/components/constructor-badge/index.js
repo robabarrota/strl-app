@@ -1,9 +1,9 @@
 import './styles.scss';
-import constants from '../../utils/constants';
+import { carAbbreviationMap } from 'src/utils/constants';
 
 const ConstructorBadge = ({ constructor }) => {
 
-    const abbreviation = constants.carAbbreviationMap[constructor];
+    const abbreviation = carAbbreviationMap[constructor];
     const abbrevClass = `constructor-badge__${abbreviation?.toLowerCase()}`;
 
     return (
