@@ -1,7 +1,7 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRaceResults, getFastestLaps, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { getRaceResults, getFastestLaps, getPenalties, getTrackList, getParticipants } from 'src/redux/selectors';
+import { fetchRaceResults, fetchFastestLaps, fetchPenalties, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
@@ -40,11 +40,13 @@ const ConstructorStandings = () => {
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
 	const { content: fastestLaps, loading: fastestLapsLoading } = useSelector(getFastestLaps);
+	const { content: penalties, loading: penaltiesLoading } = useSelector(getPenalties);
 	const { content: trackList, loading: trackListLoading } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading } = useSelector(getParticipants);
 
 	if (isEmpty(raceResults) && !raceResultsLoading) dispatch(fetchRaceResults());
 	if (isEmpty(fastestLaps) && !fastestLapsLoading) dispatch(fetchFastestLaps());
+	if (isEmpty(penalties) && !penaltiesLoading) dispatch(fetchPenalties());
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
@@ -84,22 +86,34 @@ const ConstructorStandings = () => {
 
 	const constructors = useMemo(() => [...new Set(participants?.map(({ Car }) => Car))], [participants])
 
-	const constructorPoints = useMemo(() => 
-		raceResults.reduce((acc, row) => {
-			const constructor = { 'Car': row['Car'] };
-			const constructorIndex = acc.findIndex(constructors => constructors['Car'] === row['Car']);
-			resultHeaders.forEach(header => {
-				let racePoints = pointMap[row[header]];
-				if (racePoints && fastestLaps[header] === row['Driver'] && row[header] <= 10) racePoints += 1;
-				if (constructorIndex > -1 && racePoints !== undefined) {
-					acc[constructorIndex][header] += racePoints;  
-				} else {
-					constructor[header] = racePoints;
-				}
-			});
-			if (constructorIndex === -1) acc.push(constructor);
-			return acc;
-		}, []), [raceResults, resultHeaders, fastestLaps]);
+	const constructorPoints = useMemo(() => {
+		let results = [];
+		if (!isEmpty(resultHeaders) && !isEmpty(fastestLaps) && !isEmpty(penalties)) {
+			results = raceResults.reduce((acc, row) => {
+				const constructorName = row['Car'];
+				const constructor = { 'Car': constructorName };
+				const constructorIndex = acc.findIndex(constructors => constructors['Car'] === constructorName);
+				const driverName = row['Driver'];
+				const driverPenalties = penalties.find(penaltyRow => penaltyRow['Driver'] === driverName);
+				resultHeaders.forEach(header => {
+					let racePoints = pointMap[row[header]];
+					if (racePoints !== undefined) {
+						if (fastestLaps[header] === driverName && row[header] <= 10) racePoints += 1;
+						const racePenalty = driverPenalties[header] ?? 0;
+						racePoints -= racePenalty;
+					}
+					if (constructorIndex > -1 && racePoints !== undefined) {
+						acc[constructorIndex][header] += racePoints;  
+					} else {
+						constructor[header] = racePoints;
+					}
+				});
+				if (constructorIndex === -1) acc.push(constructor);
+				return acc;
+			}, []);
+		}
+		return results;
+	}, [raceResults, resultHeaders, fastestLaps, penalties]);
 
 	const stats = useMemo(() => 
 		constructorPoints.map(constructor => {
