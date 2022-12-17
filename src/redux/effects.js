@@ -112,6 +112,28 @@ const fetchFastestLaps = (store, action) => {
 	}
 };
 
+const fetchPenalties = (store, action) => {
+	if (action.type === actions.FETCH_PENALTIES) {
+		store.dispatch(actions.setPenalties({ loading: true }));
+		service
+			.getPenalties()
+			.then((response) => {
+				const data = response[0].data;
+
+				store.dispatch(
+					actions.setPenalties({
+						loading: false,
+						content: data,
+						error: null,
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setPenalties({ loading: false, error }));
+			});
+	}
+};
+
 const fetchMedalCount = (store, action) => {
 	if (action.type === actions.FETCH_MEDAL_COUNT) {
 		store.dispatch(actions.setMedalCount({ loading: true }));
@@ -161,7 +183,8 @@ const effects = [
 	fetchParticipants, 
 	fetchQualifying, 
 	fetchRaceResults, 
-	fetchFastestLaps, 
+	fetchFastestLaps,
+	fetchPenalties,
 	fetchMedalCount,
 	fetchHighlights
 ];

@@ -30,6 +30,12 @@ export const setFastestLaps = fastestLaps => ({ type: SET_FASTEST_LAPS, payload:
 export const FETCH_FASTEST_LAPS = `${prefix}/FETCH_FASTEST_LAPS`;
 export const fetchFastestLaps = () => ({ type: FETCH_FASTEST_LAPS });
 
+export const SET_PENALTIES = `${prefix}/SET_PENALTIES`;
+export const setPenalties = penalties => ({ type: SET_PENALTIES, payload: { penalties } });
+
+export const FETCH_PENALTIES = `${prefix}/FETCH_PENALTIES`;
+export const fetchPenalties = () => ({ type: FETCH_PENALTIES });
+
 export const SET_MEDAL_COUNT = `${prefix}/SET_MEDAL_COUNT`;
 export const setMedalCount = medalCount => ({ type: SET_MEDAL_COUNT, payload: { medalCount } });
 

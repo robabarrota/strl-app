@@ -26,6 +26,11 @@ const service = {
         ...sheetConfig,
         sheetsOptions: [{ id: 'Fastest Lap' }],
     }),
+    
+    getPenalties: async () => await fetchGoogleSheetsData({
+        ...sheetConfig,
+        sheetsOptions: [{ id: 'Penalties' }],
+    }),
 
     getMedalCount: async () => await fetchGoogleSheetsData({
         ...sheetConfig,

@@ -6,6 +6,7 @@ const INITIAL_STATE = {
 	qualifying: { loading: false, content: [], error: null },
 	raceResults: { loading: false, content: [], error: null },
 	fastestLaps: { loading: false, content: [], error: null },
+	penalties: { loading: false, content: [], error: null },
 	medalCount: { loading: false, content: [], error: null },
 	highlights: { loading: false, content: [], error: null },
 };
@@ -22,6 +23,8 @@ const reducer = (state = INITIAL_STATE, action) => {
 			return { ...state, raceResults: { ...state.raceResults, ...action.payload.raceResults } };
 		case actions.SET_FASTEST_LAPS:
 			return { ...state, fastestLaps: { ...state.fastestLaps, ...action.payload.fastestLaps } };
+		case actions.SET_PENALTIES:
+			return { ...state, penalties: { ...state.penalties, ...action.payload.penalties } };
 		case actions.SET_MEDAL_COUNT:
 			return { ...state, medalCount: { ...state.medalCount, ...action.payload.medalCount } };
 		case actions.SET_HIGHLIGHTS:
