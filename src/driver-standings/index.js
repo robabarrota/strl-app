@@ -1,7 +1,7 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRaceResults, getFastestLaps, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { getRaceResults, getFastestLaps, getPenalties, getTrackList, getParticipants } from 'src/redux/selectors';
+import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants, fetchPenalties } from 'src/redux/actions';
 import { isEmpty, groupBy, first, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
@@ -37,11 +37,13 @@ const DriverStandings = () => {
 
 	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
 	const { content: fastestLaps, loading: fastestLapsLoading } = useSelector(getFastestLaps);
+	const { content: penalties, loading: penaltiesLoading } = useSelector(getPenalties);
 	const { content: trackList, loading: trackListLoading } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading } = useSelector(getParticipants);
 
 	if (isEmpty(raceResults) && !raceResultsLoading) dispatch(fetchRaceResults());
 	if (isEmpty(fastestLaps) && !fastestLapsLoading) dispatch(fetchFastestLaps());
+	if (isEmpty(penalties) && !penaltiesLoading) dispatch(fetchPenalties());
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
@@ -78,15 +80,35 @@ const DriverStandings = () => {
 		Track
 	), [trackList]);
 
-	const driverPoints = useMemo(() => raceResults.map(row => {
-		const driver = { 'Driver': row['Driver'] };
-		resultHeaders.forEach(header => {
-			let racePoints = pointMap[row[header]];
-			if (racePoints && fastestLaps[header] === driver['Driver'] && row[header] <= 10) racePoints += 1;
-			driver[header] = racePoints;
-		});
-		return driver;
-	}), [raceResults, resultHeaders, fastestLaps]);
+	const driverPoints = useMemo(() => {
+		let results = []
+		if (!isEmpty(resultHeaders) && !isEmpty(fastestLaps) && !isEmpty(penalties)) {
+			results = raceResults.map(row => {
+				const driverName = row['Driver'];
+				const driverPenalties = penalties.find(penaltyRow => penaltyRow['Driver'] === driverName);
+				const pointsPerRace = {};
+				resultHeaders.forEach(header => {
+					let racePoints = pointMap[row[header]];
+					if (racePoints !== undefined) {
+						if (fastestLaps[header] === driverName && row[header] <= 10) racePoints += 1;
+						const racePenalty = driverPenalties[header] ?? 0;
+						racePoints -= racePenalty;
+					} 
+					
+					pointsPerRace[header] = racePoints;
+				});
+				return  { 'Driver': driverName, ...pointsPerRace };
+			});
+			penalties.filter(row => Object.keys(row).length > 2).forEach(penaltyRow => {
+				resultHeaders.forEach(header => {
+					let racePenalty = Number(penaltyRow[header]) ?? 0;
+					const pointsBeforePenalty = results[header] ?? 0;
+					results[header] = pointsBeforePenalty - racePenalty;
+				});
+			})
+		}
+		return results;
+	}, [raceResults, resultHeaders, fastestLaps, penalties]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile]);
 	const formatTrackName = useCallback((track) => isMobile ? track : trackAbbreviationMap[track], [isMobile]);
