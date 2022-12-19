@@ -8,7 +8,7 @@ import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
 import {
 	carAbbreviationMap,
-	trackAbbreviationMap,
+	trackDetails,
 	pointMap
 } from 'src/utils/constants';
 import { round, getCarColor } from 'src/utils/utils';
@@ -80,7 +80,7 @@ const ConstructorStandings = () => {
 	}, [sortBy]);
 
 	const formatConstructorName = useCallback((constructor) => isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackAbbreviationMap[track], [isMobile])
+	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) => Track), [trackList]);
 

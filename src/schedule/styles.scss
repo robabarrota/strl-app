@@ -1,25 +1,156 @@
 .schedule {
-    display: grid;
-    gap: 2.5em;
-
     &__title {
         margin-left: 18px;
         margin-bottom: 0;
     }
 
-    &__table-container {
-        width: 100%;
+    &__go-to-next {
+        padding: 10px;
+    }
+
+    &__race-card-container {
+        padding: 0 10px;
+        display: grid;
+        grid-template-columns: auto auto auto auto;
+
+        @media screen and (max-width: 1360px) {
+            grid-template-columns: auto auto auto;
+		}
+        @media screen and (max-width: 1024px) {
+            grid-template-columns: auto auto;
+		}
+        @media screen and (max-width: 575px) {
+            grid-template-columns: auto;
+		}
+        column-gap: 20px;
+    }
+    &__race-card {
+        border-top: solid 2px #000;
+        border-right: solid 2px #000;
+        border-top-right-radius: 10px;
+        padding-top: 0;
+        padding-top: 0;
+        margin-top: 40px;
+        padding-right: 10px;
+        transition: .1s all ease;
+
+        &:hover, &:focus, &:active {
+            padding-top: 10px;
+            margin-top: 30px;
+            border-color: #e10600;
+        }
+    }
+
+    &__next-event {
+        &:hover, &:focus, &:active {
+            border-color: #00e10b;
+        }    
+    }
+
+    &__event-info{
+        padding-bottom: 15px;
+        border-bottom: 1px solid #949498;
+        margin-bottom: 15px;
+    }
+
+    &__top-bar {
         display: flex;
-        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    &__table-cell {
-        padding: 18px 20px 14px;
-        white-space: nowrap;
+    &__event-description {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #949498;
+        margin-bottom: 10px;
+        min-height: 70px;
+
+        &--track {
+            font-family: 'F1BoldRegular';
+            font-size: 18px;
+            line-height: 24px;
+        }
+        &--title {
+            font-family: strl-font;
+            font-size: 12px;
+            line-height: 15px;
+            letter-spacing: .5px;
+            font-weight: 400;
+        }
     }
 
-    &__table-header {
-        padding: 18px 20px 14px;
+    &__event-image {
+        text-align: center;
+        background-image: url('https://www.formula1.com/etc/designs/fom-website/images/patterns/plus-x1.png');
+        background-size: 12px;
+        background-repeat: repeat;
+        background-size: 8px;
+        overflow: hidden;
+        height: 108px;
+        border-radius: 10px;
+
+        > img {
+            height: 100%;
+            width: auto;
+            display: inline-block;
+        }
+    }
+
+    &__days {
+        font-family: 'F1WideRegular';
+        font-size: 18px;
+        line-height: 24px;
+    }
+    
+    &__country-flag {
+        width: 30px;
+        border: 1px solid #949498;
+        overflow: hidden;
+        border-radius: 3px;
+        position: relative;
+        top: -2px;
+        
+        > img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+    }
+
+    &__month-container {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    &__month {
+        text-transform: uppercase;
+        display: inline-block;
+        padding: 2px 5px 1px;
+        border-radius: 5px;
+        color: #fff;
+        background: #000;
         white-space: nowrap;
+        font-family: 'F1WideRegular';
+        font-size: 12px;
+        line-height: 15px;
+        letter-spacing: .5px;
+        font-weight: 400;
+    }
+
+    &__finish-banner-container {
+        height: 18px;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-left: 5px;
+        background-color: #000;
+
+        > img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
     }
 }

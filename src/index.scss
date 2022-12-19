@@ -7,6 +7,12 @@
 }
 
 @font-face {
+  font-family: 'F1WideRegular';
+  src: url(../fonts/Formula1-Wide.ttf);
+  font-weight: 500;
+}
+
+@font-face {
   font-family: strl-font;
   src: url(../fonts/Formula1-Regular.ttf);
 }
@@ -74,4 +80,13 @@ h1 {
   font-size: 42px;
   line-height: 1.142;
   color: #171717;
+}
+
+legend {
+  float: initial;
+  width: initial;
+  padding: initial;
+  margin-bottom: initial;
+  font-size: initial;
+  line-height: initial;
 }

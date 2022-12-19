@@ -6,7 +6,7 @@ import { isEmpty, groupBy, first } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
-import { trackAbbreviationMap } from 'src/utils/constants';
+import { trackDetails } from 'src/utils/constants';
 import { round, getCarColor } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import { isNaN } from 'lodash';
@@ -76,7 +76,7 @@ const Qualifying = () => {
 	}, [sortBy]);
 
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackAbbreviationMap[track], [isMobile])
+	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const stats = useMemo(() => {
 		const groupedDrivers = groupBy(qualifyingResults, 'Driver');
