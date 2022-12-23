@@ -71,10 +71,10 @@ const ConstructorStandings = () => {
 		};
 		if (a[sortBy.key] === '-') return 1;
 		if (b[sortBy.key] === '-') return -1;
-		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+		if ( a[sortBy.key] < b[sortBy.key] ){
 			return getCorrectSortValue(-1);
 		}
-		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+		if ( a[sortBy.key] > b[sortBy.key] ){
 			return getCorrectSortValue(1);
 		}
 		return 0;

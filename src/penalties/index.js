@@ -63,16 +63,15 @@ const Penalties = () => {
 		const getCorrectSortValue = (initialValue) => {
 			let sortModifier = 1;
 			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
-			sortModifier *= sortBy.key === 'average' || sortBy.key === 'racesMissed' ? -1 : 1;
 
 			return initialValue * sortModifier;
 		};
 		if (a[sortBy.key] === '-') return 1;
 		if (b[sortBy.key] === '-') return -1;
-		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+		if ( a[sortBy.key] < b[sortBy.key] ){
 			return getCorrectSortValue(-1);
 		}
-		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+		if ( a[sortBy.key] > b[sortBy.key] ){
 			return getCorrectSortValue(1);
 		}
 		return 0;
