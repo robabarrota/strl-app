@@ -1,7 +1,7 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getQualifying, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchQualifying, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { getQualifying, getTrackList, getParticipants, getRaceResults } from 'src/redux/selectors';
+import { fetchQualifying, fetchTrackList, fetchParticipants, fetchRaceResults } from 'src/redux/actions';
 import { isEmpty, groupBy, first } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
@@ -24,7 +24,7 @@ import styled from 'styled-components';
 
 const statHeaders = [
 	{key: 'average', label: 'AVG'},
-	{key: 'racesMissed', label: 'DNS\'s'},
+	{key: 'avgDifference', label: 'DIFF'},
 	{key: 'poles', label: 'POLES'},
 ];
 
@@ -40,10 +40,12 @@ const Qualifying = () => {
 	const { content: qualifyingResults, loading: qualifyingLoading } = useSelector(getQualifying);
 	const { content: trackList, loading: trackListLoading } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading } = useSelector(getParticipants);
+	const { content: raceResults, loading: raceResultsLoading } = useSelector(getRaceResults);
 
 	if (isEmpty(qualifyingResults) && !qualifyingLoading) dispatch(fetchQualifying());
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
+	if (isEmpty(raceResults) && !raceResultsLoading) dispatch(fetchRaceResults());
 
 	const trackSortFunction = useCallback((a, b) => {
 		if (a[sortBy.key] === 'DNS') return 1;
@@ -61,16 +63,16 @@ const Qualifying = () => {
 		const getCorrectSortValue = (initialValue) => {
 			let sortModifier = 1;
 			sortModifier *= sortBy.direction === 'desc' ? -1 : 1;
-			sortModifier *= sortBy.key === 'average' || sortBy.key === 'racesMissed' ? -1 : 1;
+			sortModifier *= sortBy.key === 'average' ? -1 : 1;
 
 			return initialValue * sortModifier;
 		};
 		if (a[sortBy.key] === '-') return 1;
 		if (b[sortBy.key] === '-') return -1;
-		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+		if ( (a[sortBy.key]) < (b[sortBy.key]) ){
 			return getCorrectSortValue(-1);
 		}
-		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+		if ( (a[sortBy.key]) > (b[sortBy.key]) ){
 			return getCorrectSortValue(1);
 		}
 		return 0;
@@ -79,34 +81,56 @@ const Qualifying = () => {
 	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
-	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(qualifyingResults, 'Driver');
-		if (isEmpty(groupedDrivers)) return [];
-		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
-			const results = first(driverResults);
-			let racesMissed = 0;
-			let totalQualifying = 0;
-			let totalRaces = 0;
-			let poles = 0;
-			Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
-				if (result === 'DNS') racesMissed++;
+	const getRaceFinishValue = (resultStr) => resultStr === 'DNF' || resultStr === 'DNS' ? -1 : parseInt(resultStr);
 
-				if (result !== 'DNF' && result !== 'DNS') totalQualifying += parseInt(result);
-				if (parseInt(result) === 1) poles ++;
-				totalRaces++;
+	const lastPositions = useMemo(() => {
+			const positionMap = {};
+			qualifyingResults.forEach(row => {
+				Object.entries(row).forEach(([key, value]) => {
+					if (key !== 'Driver' && key !== 'Car' && value !== 'DNF' && value !== 'DNS') {
+						if (parseInt(value) > positionMap[key] || positionMap[key] === undefined) positionMap[key] = parseInt(value)
+					}
+				});
 			});
+			return positionMap;
+		}, [qualifyingResults])
 
-			const average = totalQualifying / totalRaces;
+	const stats = useMemo(() => {
+		if (raceResults.length && qualifyingResults.length && lastPositions) {
+			const groupedDrivers = groupBy(qualifyingResults, 'Driver');
+			if (isEmpty(groupedDrivers)) return [];
+			const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
+				const results = first(driverResults);
+				let difference = 0;
+				let totalQualifying = 0;
+				let totalRaces = 0;
+				let poles = 0;
+				Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
+					if (result !== 'DNS') {
+						const raceFinishStr = raceResults.find(raceResult => raceResult['Driver'] === driver)[track];
+						const raceFinish = getRaceFinishValue(raceFinishStr);
+						difference += parseInt(result) - (raceFinish === -1 ? (lastPositions[track] + 1) : raceFinish);
+						totalRaces++;
+					}
 
-			return {
-				driver,
-				average: average === 0 ? '-' : average,
-				racesMissed,
-				poles,
-			}
-		})
-		return driverStats;
-	}, [qualifyingResults]);
+					if (result !== 'DNF' && result !== 'DNS') totalQualifying += parseInt(result);
+					if (parseInt(result) === 1) poles ++;
+				});
+
+				const average = totalRaces > 0 ? totalQualifying / totalRaces : '-';
+				const avgDifference= totalRaces > 0 ? difference / totalRaces: '-';
+
+				return {
+					driver,
+					average: average === 0 ? '-' : average,
+					avgDifference,
+					poles,
+				}
+			})
+			return driverStats;
+		}
+		return [];
+	}, [qualifyingResults, raceResults, lastPositions]);
 
 	useEffect(() => {
 		const qualifyingResultsCopy = [...qualifyingResults];
@@ -197,6 +221,14 @@ const Qualifying = () => {
 		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
 	}, [sortBy]);
 
+	const displayAverageDifference = (difference) => {
+		const roundedDifference = round(difference);
+		if (roundedDifference > 0) {
+			return `+${roundedDifference}`;
+		} 
+		return `${roundedDifference}`;
+	};
+
 	const renderResultsSubTable = useMemo(() => {
 		return (
 			<div className="qualifying__results-subtable-container">
@@ -266,7 +298,7 @@ const Qualifying = () => {
 								</td>
 								<td
 									className={`qualifying__table-cell`}>
-									{driverStats.racesMissed}
+									{displayAverageDifference(driverStats.avgDifference)}
 								</td>
 								<td
 									className={`qualifying__table-cell`}>
