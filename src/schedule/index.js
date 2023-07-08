@@ -45,6 +45,7 @@ const Schedule = () => {
 
 	const nextTrack = useMemo(() => {
 		const now = new Date();
+		now.setHours(0,0,0,0);
 		return trackList.find(({ Date: date }) => new Date(date) >= now)?.['Track'];
 	}, [trackList]);
 
