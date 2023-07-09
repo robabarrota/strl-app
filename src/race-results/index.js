@@ -68,8 +68,8 @@ const RaceResults = () => {
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 	if (isEmpty(lastPlacePositions) && !lastPlacePositionsLoading) dispatch(fetchQualifying());
 
-	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
+	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
+	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const stats = useMemo(() => {
 		if (!raceResultsLoading && !fastestLapsLoading && !lastPlacePositionsLoading){
@@ -151,7 +151,7 @@ const RaceResults = () => {
 		})
 	}, [resultHeaders, raceResults, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
+	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'race-results__driver';

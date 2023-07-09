@@ -14,28 +14,6 @@
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         column-gap: 20px;
     }
-    &__race-card {
-        border-top: solid 2px #000;
-        border-right: solid 2px #000;
-        border-top-right-radius: 10px;
-        padding-top: 0;
-        padding-top: 0;
-        margin-top: 40px;
-        padding-right: 10px;
-        transition: .1s all ease;
-
-        &:hover, &:focus, &:active {
-            padding-top: 10px;
-            margin-top: 30px;
-            border-color: #e10600;
-        }
-    }
-
-    &__next-event {
-        &:hover, &:focus, &:active {
-            border-color: #00e10b;
-        }    
-    }
 
     &__event-info{
         padding-bottom: 15px;
@@ -91,21 +69,7 @@
         font-family: 'F1WideRegular';
         font-size: 18px;
         line-height: 24px;
-    }
-    
-    &__country-flag {
-        width: 30px;
-        border: 1px solid #949498;
-        overflow: hidden;
-        border-radius: 3px;
-        position: relative;
-        top: -2px;
-        
-        > img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
+        margin: 0;
     }
 
     &__month-container {
@@ -141,6 +105,69 @@
             width: 100%;
             height: auto;
             display: block;
+        }
+    }
+
+    &__current-race-container {
+        padding: 0 10px;
+        background: #15151e;
+        color: #fff;
+        margin-top: 40px;
+        padding: 20px 10px;
+    }
+
+    &__current-race-details-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 10px;
+        // display: flex;
+        // justify-content: space-between;
+    }
+    &__current-race-track-panel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__current-race-session-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    &__current-event-description {
+        padding-bottom: 10px;
+        border-bottom: 1px solid #949498;
+        margin-bottom: 10px;
+        min-height: 70px;
+
+        &--track {
+            font-family: 'F1BoldRegular';
+            font-size: 18px;
+            line-height: 24px;
+        }
+        &--title {
+            font-family: strl-font;
+            font-size: 12px;
+            line-height: 15px;
+            letter-spacing: .5px;
+            font-weight: 400;
+        }
+    }
+    &__current-event-image {
+        text-align: center;
+        background-image: url('https://www.formula1.com/etc/designs/fom-website/images/patterns/plus-white-x1.png');
+        background-size: 12px;
+        background-repeat: repeat;
+        background-size: 8px;
+        overflow: hidden;
+        height: 108px;
+        border-radius: 10px;
+
+        > img {
+            height: 100%;
+            width: auto;
+            display: inline-block;
         }
     }
 }

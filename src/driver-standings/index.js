@@ -82,8 +82,8 @@ const DriverStandings = () => {
 		return results;
 	}, [raceResults, resultHeaders, fastestLaps, penalties]);
 
-	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile]);
-	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile]);
+	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile]);
+	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile]);
 
 	const stats = useMemo(() => {
 		const groupedDrivers = groupBy(driverPoints, 'Driver');
@@ -158,7 +158,7 @@ const DriverStandings = () => {
 		}, [])
 	, [resultHeaders, driverPoints, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
+	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'driver-standings__driver';

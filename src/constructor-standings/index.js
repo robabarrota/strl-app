@@ -68,8 +68,8 @@ const ConstructorStandings = () => {
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
-	const formatConstructorName = useCallback((constructor) => isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
+	const formatConstructorName = useCallback((constructor) => !isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
+	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const resultHeaders = useMemo(() => trackList?.map(({ Track }) => Track), [trackList]);
 
@@ -168,7 +168,7 @@ const ConstructorStandings = () => {
 	}
 	, [resultHeaders, constructorPoints, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
+	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'constructor-standings__driver';

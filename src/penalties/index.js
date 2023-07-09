@@ -61,8 +61,8 @@ const Penalties = () => {
 	if (isEmpty(trackList) && !trackListLoading) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 
-	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
+	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
+	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const stats = useMemo(() => {
 		const groupedDrivers = groupBy(penalties, 'Driver');
@@ -135,7 +135,7 @@ const Penalties = () => {
 		})
 	}, [resultHeaders, penalties, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
+	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'penalties__driver';

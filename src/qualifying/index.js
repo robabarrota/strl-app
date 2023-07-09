@@ -48,8 +48,8 @@ const Qualifying = () => {
 	if (isEmpty(participants) && !participantsLoading) dispatch(fetchParticipants());
 	if (isEmpty(raceResults) && !raceResultsLoading) dispatch(fetchRaceResults());
 
-	const formatDriverName = useCallback((driver) => isMobile ? driver : driver.split(' ')[0], [isMobile])
-	const formatTrackName = useCallback((track) => isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
+	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
+	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
 	const getRaceFinishValue = (resultStr) => resultStr === 'DNF' || resultStr === 'DNS' ? -1 : parseInt(resultStr);
 
@@ -135,7 +135,7 @@ const Qualifying = () => {
 		})
 	}, [resultHeaders, qualifyingResults, formatTrackName])
 
-	const graphTrackOrientation = useMemo(() => isMobile ? 0 : 270, [isMobile]);
+	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
 	const getClassName = (header) => {
 		if (header === 'Driver') return 'qualifying__driver';

@@ -68,7 +68,7 @@ const Header = () => {
 							<i className={"fa-solid fa-chevron-down header__dropdown-chevron"}></i>
 						</div>
 					</a>
-					{!isMobile && renderStandingsSubLinks()}
+					{isMobile && renderStandingsSubLinks()}
 					<NavLink className="header__nav-link" to="/race-results" onClick={closeHeader}>
 						{({ isActive }) => (
 							<div className={labelClass(isActive)}>

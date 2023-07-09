@@ -1,0 +1,11 @@
+.clock {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    margin: auto 15px;
+}
+@keyframes rotate {
+    100% {
+        transform: rotateZ(360deg)
+    }
+}

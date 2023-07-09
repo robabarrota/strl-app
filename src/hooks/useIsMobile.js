@@ -21,5 +21,5 @@ export default function useIsMobile() {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    return windowDimensions.width > mobileWidth;
+    return windowDimensions.width < mobileWidth;
 }
