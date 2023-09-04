@@ -24,7 +24,7 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/australia-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Australia%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Australia.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 HEINEKEN AUSTRALIAN GRAND PRIX',
+        fullName: 'FORMULA 1 ROLEX AUSTRALIAN GRAND PRIX',
     },
     'Bahrain': {
         abbreviation: 'BHR',
@@ -52,7 +52,7 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/spain-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Spain%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Spain.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 PIRELLI GRAN PREMIO DE ESPAÑA',
+        fullName: 'FORMULA 1 AWS GRAN PREMIO DE ESPAÑA',
     },
     'Monaco': {
         abbreviation: 'MCO',
@@ -73,7 +73,7 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/canada-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Canada%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Canada.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 AWS GRAND PRIX DU CANADA',
+        fullName: 'FORMULA 1 PIRELLI GRAND PRIX DU CANADA',
     },
     'France': {
         abbreviation: 'FRA',
@@ -94,21 +94,21 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/great-britain-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Great%20Britain%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Great%20Britain.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 LENOVO BRITISH GRAND PRIX',
+        fullName: 'FORMULA 1 ARAMCO BRITISH GRAND PRIX',
     },
     'Hungary': {
         abbreviation: 'HUN',
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/hungary-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Hungary%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Hungary.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 ARAMCO MAGYAR NAGYDÍJ',
+        fullName: 'FORMULA 1 QATAR AIRWAYS HUNGARIAN GRAND PRIX',
     },
     'Belgium': {
         abbreviation: 'BEL',
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/belgium-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Belgium%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Belgium.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 ROLEX BELGIAN GRAND PRIX',
+        fullName: 'FORMULA 1 MSC CRUISES BELGIAN GRAND PRIX',
     },
     'Italy': {
         abbreviation: 'ITA',
@@ -129,14 +129,14 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/japan-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Japan%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Japan.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 HONDA JAPANESE GRAND PRIX',
+        fullName: 'FORMULA 1 LENOVO JAPANESE GRAND PRIX',
     },
     'USA': {
         abbreviation: 'USA',
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/united-states-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/United%20States%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/United%20States.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 ARAMCO UNITED STATES GRAND PRIX',
+        fullName: 'FORMULA 1 LENOVO UNITED STATES GRAND PRIX',
     },
     'Mexico': {
         abbreviation: 'MEX',
@@ -150,7 +150,7 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/brazil-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Brazil%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Brazil.png.transform/2col/image.png',
-        fullName: 'FORMULA 1 HEINEKEN GRANDE PRÊMIO DE SÃO PAULO',
+        fullName: 'FORMULA 1 ROLEX GRANDE PRÊMIO DE SÃO PAULO',
     },
     'Abu Dhabi': {
         abbreviation: 'ABU',
@@ -164,7 +164,7 @@ const trackDetails = {
         flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/italy-flag.png.transform/2col/image.png',
         map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Emilia%20Romagna%20carbon.png.transform/2col/image.png',
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Emilia%20Romagna.png.transform/2col/image.png',
-        fullName: `FORMULA 1 ROLEX GRAN PREMIO DEL MADE IN ITALY E DELL'EMILIA-ROMAGNA`,
+        fullName: `FORMULA 1 QATAR AIRWAYS GRAN PREMIO DEL MADE IN ITALY E DELL'EMILIA-ROMAGNA`,
     },
     'Miami': {
         abbreviation: 'MIA',
@@ -180,6 +180,27 @@ const trackDetails = {
         whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Portugal.png.transform/2col/image.png',
         fullName: 'FORMULA 1 HEINEKEN GRANDE PRÉMIO DE PORTUGAL',
     },
+    'Saudi Arabia': {
+        abbreviation: 'SAU',
+        flag: 'https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/saudi-arabia-flag.png.transform/2col/image.png',
+        map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Saudi%20Arabia%20carbon.png.transform/9col/image.png',
+        whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Saudi%20Arabia.png.transform/2col/image.png',
+        fullName: 'FORMULA 1 STC SAUDI ARABIAN GRAND PRIX',
+    },
+    'Qatar': {
+        abbreviation: 'QAT',
+        flag: 'https://media.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/qatar-flag.png.transform/2col/image.png',
+        map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Qatar%20carbon.png.transform/9col/image.png',
+        whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Qatar.png.transform/2col/image.png',
+        fullName: 'FORMULA 1 STC SAUDI ARABIAN GRAND PRIX',
+    },
+    'Las Vegas': {
+        abbreviation: 'VEG',
+        flag: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Flags%2016x9/united-states-flag.png.transform/2col/image.png',
+        map: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Las%20Vegas%20carbon.png.transform/2col/image.png',
+        whiteMap: 'https://www.formula1.com/content/dam/fom-website/2018-redesign-assets/Track%20icons%204x3/Las%20Vegas.png.transform/2col/image.png',
+        fullName: 'FORMULA 1 HEINEKEN SILVER LAS VEGAS GRAND PRIX',
+    }
 };
 
 const carColorMap = {
