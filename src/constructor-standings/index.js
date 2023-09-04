@@ -56,17 +56,17 @@ const ConstructorStandings = () => {
 	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
-	const { content: raceResults, loading: raceResultsLoading, error: raceResultsError } = useSelector(getRaceResults);
-	const { content: fastestLaps, loading: fastestLapsLoading, error: fastestLapsError } = useSelector(getFastestLaps);
-	const { content: penalties, loading: penaltiesLoading, error: penaltiesError } = useSelector(getPenalties);
-	const { content: trackList, loading: trackListLoading, error: trackListError } = useSelector(getTrackList);
-	const { content: participants, loading: participantsLoading, error: participantsError } = useSelector(getParticipants);
+	const { content: raceResults, loading: raceResultsLoading, fetched: raceResultsFetched, error: raceResultsError } = useSelector(getRaceResults);
+	const { content: fastestLaps, loading: fastestLapsLoading, fetched: fastestLapsFetched, error: fastestLapsError } = useSelector(getFastestLaps);
+	const { content: penalties, loading: penaltiesLoading, fetched: penaltiesFetched, error: penaltiesError } = useSelector(getPenalties);
+	const { content: trackList, loading: trackListLoading, fetched: trackListFetched, error: trackListError } = useSelector(getTrackList);
+	const { content: participants, loading: participantsLoading, fetched: participantsFetched, error: participantsError } = useSelector(getParticipants);
 
-	if (isEmpty(raceResults) && !raceResultsLoading && !raceResultsError) dispatch(fetchRaceResults());
-	if (isEmpty(fastestLaps) && !fastestLapsLoading && !fastestLapsError) dispatch(fetchFastestLaps());
-	if (isEmpty(penalties) && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
-	if (isEmpty(trackList) && !trackListLoading && !trackListError) dispatch(fetchTrackList());
-	if (isEmpty(participants) && !participantsLoading && !participantsError) dispatch(fetchParticipants());
+	if (!raceResultsFetched && !raceResultsLoading && !raceResultsError) dispatch(fetchRaceResults());
+	if (!fastestLapsFetched && !fastestLapsLoading && !fastestLapsError) dispatch(fetchFastestLaps());
+	if (!penaltiesFetched && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
+	if (!trackListFetched && !trackListLoading && !trackListError) dispatch(fetchTrackList());
+	if (!participantsFetched && !participantsLoading && !participantsError) dispatch(fetchParticipants());
 
 	const formatConstructorName = useCallback((constructor) => !isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
@@ -77,7 +77,7 @@ const ConstructorStandings = () => {
 
 	const constructorPoints = useMemo(() => {
 		let results = [];
-		if (!isEmpty(resultHeaders) && !isEmpty(fastestLaps) && !isEmpty(penalties)) {
+		if (!isEmpty(resultHeaders) && raceResultsFetched && fastestLapsFetched && penaltiesFetched) {
 			results = raceResults.reduce((acc, row) => {
 				const constructorName = row['Car'];
 				const constructor = { 'Car': constructorName };
@@ -357,7 +357,7 @@ const ConstructorStandings = () => {
 	);
 
 	const isDataReady = (
-		!isEmpty(sortedConstructorPoints) && !raceResultsLoading
+		raceResultsFetched && !raceResultsLoading
 		&& !isEmpty(trackList) && !trackListLoading
 		&& !isEmpty(participants) && !participantsLoading
 	);
