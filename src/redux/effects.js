@@ -15,11 +15,12 @@ const fetchTrackList = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setTrackList({ loading: false, error }));
+				store.dispatch(actions.setTrackList({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -37,11 +38,12 @@ const fetchParticipants = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setParticipants({ loading: false, error }));
+				store.dispatch(actions.setParticipants({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -68,6 +70,7 @@ const fetchQualifying = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 				store.dispatch(
@@ -75,12 +78,13 @@ const fetchQualifying = (store, action) => {
 						loading: false,
 						content: positionMap,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setQualifying({ loading: false, error }));
-				store.dispatch(actions.setLastPlacePositions({ loading: false, error }));
+				store.dispatch(actions.setQualifying({ loading: false, error, fetched: true }));
+				store.dispatch(actions.setLastPlacePositions({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -98,11 +102,12 @@ const fetchRaceResults = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setRaceResults({ loading: false, error }));
+				store.dispatch(actions.setRaceResults({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -113,18 +118,19 @@ const fetchFastestLaps = (store, action) => {
 		service
 			.getFastestLaps()
 			.then((response) => {
-				const data = first(response[0].data);
+				const data = first(response[0].data) || {};
 
 				store.dispatch(
 					actions.setFastestLaps({
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setFastestLaps({ loading: false, error }));
+				store.dispatch(actions.setFastestLaps({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -142,11 +148,12 @@ const fetchPenalties = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setPenalties({ loading: false, error }));
+				store.dispatch(actions.setPenalties({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -164,11 +171,12 @@ const fetchMedalCount = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setMedalCount({ loading: false, error }));
+				store.dispatch(actions.setMedalCount({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -186,11 +194,12 @@ const fetchHighlights = (store, action) => {
 						loading: false,
 						content: data,
 						error: null,
+						fetched: true
 					}),
 				);
 			})
 			.catch((error) => {
-				store.dispatch(actions.setHighlights({ loading: false, error }));
+				store.dispatch(actions.setHighlights({ loading: false, error, fetched: true }));
 			});
 	}
 };

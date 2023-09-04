@@ -1,15 +1,15 @@
 import * as actions from './actions';
 
 const INITIAL_STATE = {
-	trackList: { loading: false, content: [], error: null },
-	participants: { loading: false, content: [], error: null },
-	qualifying: { loading: false, content: [], error: null },
-	raceResults: { loading: false, content: [], error: null },
-	fastestLaps: { loading: false, content: [], error: null },
-	penalties: { loading: false, content: [], error: null },
-	medalCount: { loading: false, content: [], error: null },
-	highlights: { loading: false, content: [], error: null },
-	lastPlacePositions: { loading: false, content: {}, error: null },
+	trackList: { loading: false, content: [], error: null, fetched: false },
+	participants: { loading: false, content: [], error: null, fetched: false },
+	qualifying: { loading: false, content: [], error: null, fetched: false },
+	raceResults: { loading: false, content: [], error: null, fetched: false },
+	fastestLaps: { loading: false, content: [], error: null, fetched: false },
+	penalties: { loading: false, content: [], error: null, fetched: false },
+	medalCount: { loading: false, content: [], error: null, fetched: false },
+	highlights: { loading: false, content: [], error: null, fetched: false },
+	lastPlacePositions: { loading: false, content: {}, error: null, fetched: false },
 };
 
 const reducer = (state = INITIAL_STATE, action) => {

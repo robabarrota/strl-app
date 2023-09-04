@@ -56,37 +56,37 @@ const RaceResults = () => {
 	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
-	const { content: raceResults, loading: raceResultsLoading, error: raceResultsError } = useSelector(getRaceResults);
-	const { content: fastestLaps, loading: fastestLapsLoading, error: fastestLapsError } = useSelector(getFastestLaps);
-	const { content: trackList, loading: trackListLoading, error: trackListError } = useSelector(getTrackList);
-	const { content: participants, loading: participantsLoading, error: participantsError } = useSelector(getParticipants);
-	const { content: lastPlacePositions, loading: lastPlacePositionsLoading, error: lastPlacePositionsError } = useSelector(getLastPlacePositions);
+	const { content: raceResults, loading: raceResultsLoading, fetched: raceResultsFetched, error: raceResultsError } = useSelector(getRaceResults);
+	const { content: fastestLaps, loading: fastestLapsLoading, fetched: fastestLapsFetched, error: fastestLapsError } = useSelector(getFastestLaps);
+	const { content: trackList, loading: trackListLoading, fetched: trackListFetched, error: trackListError } = useSelector(getTrackList);
+	const { content: participants, loading: participantsLoading, fetched: participantsFetched, error: participantsError } = useSelector(getParticipants);
+	const { content: lastPlacePositions, loading: lastPlacePositionsLoading, fetched: lastPlacePositionsFetched, error: lastPlacePositionsError } = useSelector(getLastPlacePositions);
 
 	useEffect(() => {
-		if (isEmpty(raceResults) && !raceResultsLoading && !raceResultsError) {
+		if (!raceResultsFetched && !raceResultsLoading && !raceResultsError) {
 			dispatch(fetchRaceResults());
 		}
-	}, [raceResults, raceResultsLoading, raceResultsError, dispatch]);
+	}, [raceResultsFetched, raceResultsLoading, raceResultsError, dispatch]);
 	useEffect(() => {
-		if (isEmpty(fastestLaps) && !fastestLapsLoading && !fastestLapsError) {
+		if (!fastestLapsFetched && !fastestLapsLoading && !fastestLapsError) {
 			dispatch(fetchFastestLaps());
 		}
-	}, [fastestLaps, fastestLapsLoading, fastestLapsError, dispatch]);
+	}, [fastestLapsFetched, fastestLapsLoading, fastestLapsError, dispatch]);
 	useEffect(() => {
-		if (isEmpty(trackList) && !trackListLoading && !trackListError) {
+		if (!trackListFetched && !trackListLoading && !trackListError) {
 			dispatch(fetchTrackList());
 		}
-	}, [trackList, trackListLoading, trackListError, dispatch]);
+	}, [trackListFetched, trackListLoading, trackListError, dispatch]);
 	useEffect(() => {
-		if (isEmpty(participants) && !participantsLoading && !participantsError) {
+		if (!participantsFetched && !participantsLoading && !participantsError) {
 			dispatch(fetchParticipants());
 		}
-	}, [participants, participantsLoading, participantsError, dispatch]);
+	}, [participantsFetched, participantsLoading, participantsError, dispatch]);
 	useEffect(() => {
-		if (isEmpty(lastPlacePositions) && !lastPlacePositionsLoading && !lastPlacePositionsError) {
+		if (!lastPlacePositionsFetched && !lastPlacePositionsLoading && !lastPlacePositionsError) {
 			dispatch(fetchQualifying());
 		}
-	}, [lastPlacePositions, lastPlacePositionsLoading, lastPlacePositionsError, dispatch]);
+	}, [lastPlacePositionsFetched, lastPlacePositionsLoading, lastPlacePositionsError, dispatch]);
 
 	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
@@ -362,8 +362,8 @@ const RaceResults = () => {
 	);
 
 	const isDataReady = (
-		!isEmpty(sortedRaceResults) && !raceResultsLoading
-		&& !isEmpty(fastestLaps) && !fastestLapsLoading
+		raceResultsFetched && !raceResultsLoading
+		&& fastestLapsFetched && !fastestLapsLoading
 		&& !isEmpty(trackList) && !trackListLoading
 		&& !isEmpty(participants) && !participantsLoading
 	);
@@ -380,7 +380,7 @@ const RaceResults = () => {
 						{renderStatsSubTable}
 					</div>
 					<div className='race-results__graph-container'>
-						{renderGraph()}
+						{raceResults?.length && renderGraph()}
 					</div>
 				</>
 			)}
