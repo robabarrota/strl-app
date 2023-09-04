@@ -81,7 +81,7 @@ const Schedule = () => {
 	const scrollToNextRace = () => {
 		if (nextRaceRef.current) {
 			// nextRaceRef.current.scrollIntoView();
-			const yOffset = -10; 
+			const yOffset = -76; 
 			const y = nextRaceRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
 
 			window.scrollTo({top: y, behavior: 'smooth'});

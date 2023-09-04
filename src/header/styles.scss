@@ -5,6 +5,9 @@
 	color: #fff;
 	font-weight: 600;
 	align-items: center;
+	position: fixed;
+    width: 100%;
+	z-index: 1;
 
 	&__top {
 		display: flex;
