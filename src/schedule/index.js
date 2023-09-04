@@ -141,7 +141,7 @@ const Schedule = () => {
 			<div className="schedule">
 				<HeaderContainer>
 					<h1 className="schedule__title">Schedule</h1>
-					<button className="schedule__go-to-next" onClick={() => scrollToNextRace()}>Go To Next Race</button>
+					{!!nextTrack && <button className="schedule__go-to-next" onClick={() => scrollToNextRace()} disabled={!nextTrack}>Go To Next Race</button>}
 				</HeaderContainer>
 
 				<div className="schedule__race-card-container">
@@ -184,55 +184,57 @@ const Schedule = () => {
 						)
 					})}
 				</div>
-				<div className="schedule__current-race-container" ref={nextRaceRef}>
-					<CurrentEventCard key={`round-${completedRaces.length}`}>
-						<RoundTitle>Round {completedRaces.length} - Up Next</RoundTitle>
-						<CurrentRaceDetailsContainer isMobile={isMobile}>
-							<div className="schedule__current-race-track-panel">
-								<div className="schedule__event-info">
-									<div className="schedule__top-bar">
-										<div>
-											<p className="schedule__days">{getDayRange(nextTrack['Date'])}</p>
-											<div className="schedule__month-container">
-												<span className="schedule__month">
-													{new Date(nextTrack['Date']).toLocaleString('default', { month: 'short' })}
-												</span>
-												{isRaceOver(nextTrack['Date']) &&
-													<span className="schedule__finish-banner-container">
-														<img src="https://www.formula1.com/etc/designs/fom-website/images/flag-asset.png" alt="race finished" />
+				{nextTrack && 
+					<div className="schedule__current-race-container" ref={nextRaceRef}>
+						<CurrentEventCard key={`round-${completedRaces.length}`}>
+							<RoundTitle>Round {completedRaces.length} - Up Next</RoundTitle>
+							<CurrentRaceDetailsContainer isMobile={isMobile}>
+								<div className="schedule__current-race-track-panel">
+									<div className="schedule__event-info">
+										<div className="schedule__top-bar">
+											<div>
+												<p className="schedule__days">{getDayRange(nextTrack['Date'])}</p>
+												<div className="schedule__month-container">
+													<span className="schedule__month">
+														{new Date(nextTrack['Date']).toLocaleString('default', { month: 'short' })}
 													</span>
-												}
+													{isRaceOver(nextTrack['Date']) &&
+														<span className="schedule__finish-banner-container">
+															<img src="https://www.formula1.com/etc/designs/fom-website/images/flag-asset.png" alt="race finished" />
+														</span>
+													}
+												</div>
+											</div>
+											<CountryFlag>
+												<img src={trackDetails[nextTrack['Track']]?.flag} alt={`${nextTrack['Track']} flag`} />
+											</CountryFlag>
+										</div>
+										
+									</div>
+									<div className="schedule__event-details">
+										<div className="schedule__event-description">
+											<div className="schedule__event-description--track">
+												{nextTrack['Track']}
+											</div>
+											<div className="schedule__event-description--title">
+												{trackDetails[nextTrack['Track']]?.fullName}
 											</div>
 										</div>
-										<CountryFlag>
-											<img src={trackDetails[nextTrack['Track']]?.flag} alt={`${nextTrack['Track']} flag`} />
-										</CountryFlag>
 									</div>
-									
-								</div>
-								<div className="schedule__event-details">
-									<div className="schedule__event-description">
-										<div className="schedule__event-description--track">
-											{nextTrack['Track']}
-										</div>
-										<div className="schedule__event-description--title">
-											{trackDetails[nextTrack['Track']]?.fullName}
-										</div>
+									<div className="schedule__current-event-image">
+										<img src={trackDetails[nextTrack['Track']]?.whiteMap} alt={`${nextTrack['Track']} map`} />
 									</div>
 								</div>
-								<div className="schedule__current-event-image">
-									<img src={trackDetails[nextTrack['Track']]?.whiteMap} alt={`${nextTrack['Track']} map`} />
+								{!isMobile && <WeatherPanel trackInfo={nextTrack}/>}
+								<div className="schedule__current-race-session-panel">
+									<Countdown targetDate={nextRaceDate}/>
+									{isMobile && <WeatherPanel trackInfo={nextTrack}/>}
+									<SessionSchedule />
 								</div>
-							</div>
-							{!isMobile && <WeatherPanel trackInfo={nextTrack}/>}
-							<div className="schedule__current-race-session-panel">
-								<Countdown targetDate={nextRaceDate}/>
-								{isMobile && <WeatherPanel trackInfo={nextTrack}/>}
-								<SessionSchedule />
-							</div>
-						</CurrentRaceDetailsContainer>
-					</CurrentEventCard>
-				</div>
+							</CurrentRaceDetailsContainer>
+						</CurrentEventCard>
+					</div>
+				}
 				<div className="schedule__race-card-container">
 					{futureRaces.map(({ Date: date, Track }, index) => {
 						return (
