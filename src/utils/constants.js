@@ -184,19 +184,19 @@ const trackDetails = {
 
 const carColorMap = {
     mercedes: {
-        r: 108,
-        g: 211,
-        b: 191
+        r: 47,
+        g: 217,
+        b: 194
     },
     redBull: {
-        r: 30,
-        g: 91,
+        r: 54,
+        g: 113,
         b: 198
     },
     ferrari: {
-        r: 237,
-        g: 28,
-        b: 36
+        r: 249,
+        g: 21,
+        b: 54
     },
     mcLaren: {
         r: 245,
@@ -209,14 +209,14 @@ const carColorMap = {
         b: 209
     },
     alphaTauri: {
-        r: 78,
-        g: 124,
-        b: 155
+        r: 94,
+        g: 143,
+        b: 170
     },
     astonMartin: {
-        r: 45,
-        g: 130,
-        b: 109
+        r: 53,
+        g: 140,
+        b: 117
     },
     williams: {
         r: 55,
@@ -224,9 +224,9 @@ const carColorMap = {
         b: 221
     },
     alfaRomeo: {
-        r: 172,
-        g: 32,
-        b: 57
+        r: 201,
+        g: 45,
+        b: 75
     },
     haas: {
         r: 182,
