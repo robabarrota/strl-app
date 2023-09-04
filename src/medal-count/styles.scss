@@ -15,6 +15,24 @@
         overflow-x: auto;
     }
 
+    &__end-subtable-container {
+        &--left {
+            border-right: solid 2px #ffc0bd;
+            flex-shrink: 0;
+        }
+
+        &--right {
+            border-left: solid 2px #ffc0bd;
+            flex-shrink: 0;
+            position: relative;
+        }
+    }
+
+    &__results-subtable-container {
+        overflow-x: auto;
+        flex-grow: 1;
+    }
+
     &__table-cell {
         padding: 18px 20px 14px;
         white-space: nowrap;
@@ -49,5 +67,9 @@
 
     &__bronze {
         color: #AD8A56;
+    }
+
+    &__cup {
+        color: #FFC107;
     }
 }

@@ -38,70 +38,115 @@ const MedalCount = () => {
 		return sortBy === null ? medalCountCopy: [...medalCountCopy.sort(medalSortFunction)];
 	}, [medalCount, medalSortFunction, sortBy]);
 
-	const formatDriverName = (driver) => driver.split(' ')[0];
+	const formatDriverName = useCallback((driver) => driver.split(' ')[0], []);
 
-	const sortByKey = (key) => {
+	const sortByKey = useCallback((key) => {
 		if (sortBy?.key === key) {
 			if (sortBy.direction === 'desc') return setSortBy({key, direction: 'asc'});
 			if (sortBy.direction === 'asc') return setSortBy(null);
 		}
 		return setSortBy({key, direction: 'desc'});
-	}
+	}, [sortBy, setSortBy]);
 
-	const getSortIcon = (track) => {
+	const getSortIcon = useCallback((track) => {
 		if (sortBy?.key !== track) return <i className="fa-solid fa-sort"></i>;
 		if (sortBy?.direction === 'desc') return <i className="fa-solid fa-sort-down"></i>;
 		if (sortBy?.direction === 'asc') return <i className="fa-solid fa-sort-up"></i>;
-	};
-	
-	const renderTable = () => (
-		<table>
-			<thead>
-				<tr>
-					<th 
-						className="medal-count__table-header"
-					>
-						Driver
-					</th>
-					<th 
-						className="medal-count__table-header medal-count__table-header--sortable" 
-						onClick={() => sortByKey('Gold')}
-					>
-						<i className="fa-solid fa-trophy medal-count__gold"></i> {getSortIcon('Gold')}
-					</th>
-					<th 
-						className="medal-count__table-header medal-count__table-header--sortable" 
-						onClick={() => sortByKey('Silver')}
-					>
-						<i className="fa-solid fa-trophy medal-count__silver"></i> {getSortIcon('Silver')}
-					</th>
-					<th 
-						className="medal-count__table-header medal-count__table-header--sortable" 
-						onClick={() => sortByKey('Bronze')}
-					>
-						<i className="fa-solid fa-trophy medal-count__bronze"></i> {getSortIcon('Bronze')}
-					</th>
-					<th 
-						className="medal-count__table-header medal-count__table-header--sortable" 
-						onClick={() => sortByKey('Points')}
-					>
-						Points {getSortIcon('Points')}
-					</th>
-				</tr>
-			</thead>
-			<tbody>
-				{sortedMedalCount.map(({ Driver, Gold, Silver, Bronze, Points }) => (
-					<tr key={Driver} >
-						<td className='medal-count__table-cell'><div>{Driver}</div></td>
-						<td className='medal-count__table-cell'><div>{Gold}</div></td>
-						<td className='medal-count__table-cell'><div>{Silver}</div></td>
-						<td className='medal-count__table-cell'><div>{Bronze}</div></td>
-						<td className='medal-count__table-cell'><div>{Points}</div></td>
+	}, [sortBy]);
+
+	const renderDriverSubTable = useMemo(() => (
+		<div className="medal-count__end-subtable-container--left">
+			<table>
+				<thead>
+					<tr>
+						<th 
+							className="medal-count__table-header"
+						>
+							Driver
+						</th>
 					</tr>
-				))}
-			</tbody>
-		</table>
-	);
+				</thead>
+				<tbody>
+					{sortedMedalCount.map(({ Driver }) => (
+						<tr key={Driver} >
+							<td className='medal-count__table-cell'><div>{Driver}</div></td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	), [sortedMedalCount]);
+
+	const renderResultsSubTable = useMemo(() => {
+		return (
+			<div className="medal-count__results-subtable-container">
+				<table>
+					<thead>
+						<tr>
+							<th 
+								className="medal-count__table-header medal-count__table-header--sortable" 
+								onClick={() => sortByKey('Gold')}
+							>
+								<i className="fa-solid fa-trophy medal-count__gold"></i> {getSortIcon('Gold')}
+							</th>
+							<th 
+								className="medal-count__table-header medal-count__table-header--sortable" 
+								onClick={() => sortByKey('Silver')}
+							>
+								<i className="fa-solid fa-trophy medal-count__silver"></i> {getSortIcon('Silver')}
+							</th>
+							<th 
+								className="medal-count__table-header medal-count__table-header--sortable" 
+								onClick={() => sortByKey('Bronze')}
+							>
+								<i className="fa-solid fa-trophy medal-count__bronze"></i> {getSortIcon('Bronze')}
+							</th>
+							<th 
+								className="medal-count__table-header medal-count__table-header--sortable" 
+								onClick={() => sortByKey('Cup')}
+							>
+								<i className="fa-solid fa-medal medal-count__cup"></i> {getSortIcon('Cup')}
+							</th>
+						</tr>
+					</thead>
+					<tbody>
+						{sortedMedalCount.map(({ Driver, Gold, Silver, Bronze, Cup }) => (
+							<tr key={Driver} >
+								<td className='medal-count__table-cell'><div>{Gold}</div></td>
+								<td className='medal-count__table-cell'><div>{Silver}</div></td>
+								<td className='medal-count__table-cell'><div>{Bronze}</div></td>
+								<td className='medal-count__table-cell'><div>{Cup}</div></td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+		)
+	}, [sortedMedalCount, sortByKey, getSortIcon]);
+
+	const renderStatsSubTable = useMemo(() => (
+		<div className="medal-count__end-subtable-container--right">
+			<table>
+				<thead>
+					<tr>
+						<th 
+							className="medal-count__table-header medal-count__table-header--sortable" 
+							onClick={() => sortByKey('Points')}
+						>
+							Points {getSortIcon('Points')}
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{sortedMedalCount.map(({ Driver, Points }) => (
+						<tr key={Driver} >
+							<td className='medal-count__table-cell'><div>{Points}</div></td>
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	), [sortedMedalCount, sortByKey, getSortIcon]);
 
 	const renderGraph = () => (
 		<ResponsiveContainer width="100%" height="100%">
@@ -123,6 +168,7 @@ const MedalCount = () => {
 				<Bar dataKey="Gold" stackId="a" fill="#C9B037" />
 				<Bar dataKey="Silver" stackId="a" fill="#B4B4B4" />
 				<Bar dataKey="Bronze" stackId="a" fill="#AD8A56" />
+				<Bar dataKey="Cup" stackId="a" fill="#FFC107" />
 				<ChartTooltip cursor={false} />
 
 			</BarChart>
@@ -136,7 +182,9 @@ const MedalCount = () => {
 			<div className="medal-count">
 				<h1 className="medal-count__title">League Leaders</h1>
 				<div className="medal-count__table-container">
-					{renderTable()}
+					{renderDriverSubTable}
+					{renderResultsSubTable}
+					{renderStatsSubTable}
 				</div>
 
 				<div className='medal-count__graph-container'>
