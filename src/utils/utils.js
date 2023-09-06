@@ -30,8 +30,8 @@ const tableSortFunction = (a, b, sortBy, lowIsPriority) => {
     if (badRaceResults.includes(a[sortBy.key])) return 1;
     if (badRaceResults.includes(b[sortBy.key])) return -1;
     
-    const aVal = typeof a[sortBy.key] === 'number' ? a[sortBy.key] : parseInt(a[sortBy.key]);
-    const bVal = typeof b[sortBy.key] === 'number' ? b[sortBy.key] : parseInt(b[sortBy.key]);
+    const aVal = typeof a[sortBy.key] === 'number' ? a[sortBy.key] : +a[sortBy.key];
+    const bVal = typeof b[sortBy.key] === 'number' ? b[sortBy.key] : +b[sortBy.key];
     if (aVal < bVal){
         return getCorrectSortValue(-1);
     }
@@ -40,10 +40,30 @@ const tableSortFunction = (a, b, sortBy, lowIsPriority) => {
     }
     return 0;
 };
+const camelize = (str) => {
+    return str ? str.replace(/(?:^\w|[A-Z]|\b\w)/g, function(word, index) {
+        return index === 0 ? word.toLowerCase() : word.toUpperCase();
+    }).replace(/\s+/g, '') : str;
+}
 
+const camelizeKeys = (data) => {
+    if (Array.isArray(data)) {
+        return data.map(v => camelizeKeys(v));
+    } else if (data != null && data.constructor === Object) {
+        return Object.keys(data).reduce(
+            (result, key) => ({
+                ...result,
+                [camelize(key)]: camelizeKeys(data[key]),
+            }), {}
+        );
+    }
+    return data;
+}
 
 export {
     round, 
     getCarColor,
-    tableSortFunction
+    tableSortFunction,
+    camelize,
+    camelizeKeys,
 }

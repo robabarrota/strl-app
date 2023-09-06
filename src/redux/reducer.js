@@ -9,7 +9,10 @@ const INITIAL_STATE = {
 	penalties: { loading: false, content: [], error: null, fetched: false },
 	medalCount: { loading: false, content: [], error: null, fetched: false },
 	highlights: { loading: false, content: [], error: null, fetched: false },
-	lastPlacePositions: { loading: false, content: {}, error: null, fetched: false },
+	driverPoints: { loading: false, content: [], error: null, fetched: false },
+	driverStats: { loading: false, content: [], error: null, fetched: false },
+	constructorPoints: { loading: false, content: [], error: null, fetched: false },
+	constructorStats: { loading: false, content: [], error: null, fetched: false },
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -30,9 +33,15 @@ const reducer = (state = INITIAL_STATE, action) => {
 			return { ...state, medalCount: { ...state.medalCount, ...action.payload.medalCount } };
 		case actions.SET_HIGHLIGHTS:
 			return { ...state, highlights: { ...state.highlights, ...action.payload.highlights } };
-		case actions.SET_LAST_PLACE_POSITIONS:
-			return { ...state, lastPlacePositions: { ...state.lastPlacePositions, ...action.payload.lastPlacePositions } };
-            
+		case actions.SET_DRIVER_POINTS:
+			return { ...state, driverPoints: { ...state.driverPoints, ...action.payload.driverPoints } };
+		case actions.SET_DRIVER_STATS:
+			return { ...state, driverStats: { ...state.driverStats, ...action.payload.driverStats } };
+		case actions.SET_CONSTRUCTOR_POINTS:
+			return { ...state, constructorPoints: { ...state.constructorPoints, ...action.payload.constructorPoints } };
+		case actions.SET_CONSTRUCTOR_STATS:
+			return { ...state, constructorStats: { ...state.driverStats, ...action.payload.constructorStats } };
+	
 		default:
 			return state;
 	}

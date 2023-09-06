@@ -1,6 +1,6 @@
-import {first} from 'lodash';
 import service from 'src/service';
 import * as actions from './actions';
+import { camelize, camelizeKeys } from 'src/utils/utils';
 
 const fetchTrackList = (store, action) => {
 	if (action.type === actions.FETCH_TRACK_LIST) {
@@ -9,11 +9,16 @@ const fetchTrackList = (store, action) => {
 			.getTrackList()
 			.then((response) => {
 				const data = response[0].data;
+				const formattedData = camelizeKeys(data)?.map(row => ({
+					...row,
+					key: camelize(row.track),
+					label: row.track,
+				}));
 
 				store.dispatch(
 					actions.setTrackList({
 						loading: false,
-						content: data,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -31,7 +36,11 @@ const fetchParticipants = (store, action) => {
 		service
 			.getParticipants()
 			.then((response) => {
-				const data = response[0].data;
+				const data = response[0].data?.map(row => ({
+					driver: row['Driver'],
+					car: row['Car'],
+					isPrimary: row['Primary'] === 'TRUE',
+				}));
 
 				store.dispatch(
 					actions.setParticipants({
@@ -55,28 +64,12 @@ const fetchQualifying = (store, action) => {
 			.getQualifying()
 			.then((response) => {
 				const data = response[0].data;
-
-				const positionMap = {};
-				data.forEach(row => {
-					Object.entries(row).forEach(([key, value]) => {
-						if (key !== 'Driver' && key !== 'Car' && value !== 'DNF' && value !== 'DNS') {
-							if (parseInt(value) > positionMap[key] || positionMap[key] === undefined) positionMap[key] = parseInt(value)
-						}
-					});
-				});
+				const formattedData = camelizeKeys(data);
 
 				store.dispatch(
 					actions.setQualifying({
 						loading: false,
-						content: data,
-						error: null,
-						fetched: true
-					}),
-				);
-				store.dispatch(
-					actions.setLastPlacePositions({
-						loading: false,
-						content: positionMap,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -84,7 +77,6 @@ const fetchQualifying = (store, action) => {
 			})
 			.catch((error) => {
 				store.dispatch(actions.setQualifying({ loading: false, error, fetched: true }));
-				store.dispatch(actions.setLastPlacePositions({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -96,11 +88,12 @@ const fetchRaceResults = (store, action) => {
 			.getRaceResults()
 			.then((response) => {
 				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
 
 				store.dispatch(
 					actions.setRaceResults({
 						loading: false,
-						content: data,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -118,7 +111,7 @@ const fetchFastestLaps = (store, action) => {
 		service
 			.getFastestLaps()
 			.then((response) => {
-				const data = first(response[0].data) || {};
+				const data = camelizeKeys(response[0].data)?.[0] || {};
 
 				store.dispatch(
 					actions.setFastestLaps({
@@ -142,11 +135,12 @@ const fetchPenalties = (store, action) => {
 			.getPenalties()
 			.then((response) => {
 				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
 
 				store.dispatch(
 					actions.setPenalties({
 						loading: false,
-						content: data,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -165,11 +159,12 @@ const fetchMedalCount = (store, action) => {
 			.getMedalCount()
 			.then((response) => {
 				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
 
 				store.dispatch(
 					actions.setMedalCount({
 						loading: false,
-						content: data,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -188,11 +183,12 @@ const fetchHighlights = (store, action) => {
 			.getHighlights()
 			.then((response) => {
 				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
 
 				store.dispatch(
 					actions.setHighlights({
 						loading: false,
-						content: data,
+						content: formattedData,
 						error: null,
 						fetched: true
 					}),
@@ -200,6 +196,104 @@ const fetchHighlights = (store, action) => {
 			})
 			.catch((error) => {
 				store.dispatch(actions.setHighlights({ loading: false, error, fetched: true }));
+			});
+	}
+};
+
+const fetchDriverPoints = (store, action) => {
+	if (action.type === actions.FETCH_DRIVER_POINTS) {
+		store.dispatch(actions.setDriverPoints({ loading: true }));
+		service
+			.getDriverPoints()
+			.then((response) => {
+				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
+
+				store.dispatch(
+					actions.setDriverPoints({
+						loading: false,
+						content: formattedData,
+						error: null,
+						fetched: true
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setDriverPoints({ loading: false, error, fetched: true }));
+			});
+	}
+};
+
+const fetchDriverStats = (store, action) => {
+	if (action.type === actions.FETCH_DRIVER_STATS) {
+		store.dispatch(actions.setDriverStats({ loading: true }));
+		service
+			.getDriverStats()
+			.then((response) => {
+				const data = response[0].data;
+
+				const formattedData = camelizeKeys(data);
+
+				store.dispatch(
+					actions.setDriverStats({
+						loading: false,
+						content: formattedData,
+						error: null,
+						fetched: true
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setDriverStats({ loading: false, error, fetched: true }));
+			});
+	}
+};
+
+const fetchConstructorPoints = (store, action) => {
+	if (action.type === actions.FETCH_CONSTRUCTOR_POINTS) {
+		store.dispatch(actions.setConstructorPoints({ loading: true }));
+		service
+			.getConstructorPoints()
+			.then((response) => {
+				const data = response[0].data;
+				const formattedData = camelizeKeys(data);
+
+				store.dispatch(
+					actions.setConstructorPoints({
+						loading: false,
+						content: formattedData,
+						error: null,
+						fetched: true
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setConstructorPoints({ loading: false, error, fetched: true }));
+			});
+	}
+};
+
+const fetchConstructorStats = (store, action) => {
+	if (action.type === actions.FETCH_CONSTRUCTOR_STATS) {
+		store.dispatch(actions.setConstructorStats({ loading: true }));
+		service
+			.getConstructorStats()
+			.then((response) => {
+				const data = response[0].data;
+
+				const formattedData = camelizeKeys(data);
+
+				store.dispatch(
+					actions.setConstructorStats({
+						loading: false,
+						content: formattedData,
+						error: null,
+						fetched: true
+					}),
+				);
+			})
+			.catch((error) => {
+				store.dispatch(actions.setConstructorStats({ loading: false, error, fetched: true }));
 			});
 	}
 };
@@ -212,7 +306,11 @@ const effects = [
 	fetchFastestLaps,
 	fetchPenalties,
 	fetchMedalCount,
-	fetchHighlights
+	fetchHighlights,
+	fetchDriverPoints,
+	fetchDriverStats,
+	fetchConstructorPoints,
+	fetchConstructorStats,
 ];
 
 export default effects;

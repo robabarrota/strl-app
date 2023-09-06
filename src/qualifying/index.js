@@ -1,8 +1,8 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getQualifying, getTrackList, getParticipants, getRaceResults, getLastPlacePositions } from 'src/redux/selectors';
-import { fetchQualifying, fetchTrackList, fetchParticipants, fetchRaceResults } from 'src/redux/actions';
-import { isEmpty, groupBy, first } from 'lodash';
+import { getQualifying, getTrackList, getParticipants, getDriverStats } from 'src/redux/selectors';
+import { fetchQualifying, fetchTrackList, fetchParticipants, fetchDriverStats } from 'src/redux/actions';
+import { isEmpty } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
@@ -23,8 +23,8 @@ import {
 import styled from 'styled-components';
 
 const statHeaders = [
-	{key: 'average', label: 'AVG'},
-	{key: 'avgDifference', label: 'DIFF'},
+	{key: 'averageQualifying', label: 'AVG'},
+	{key: 'averageDifference', label: 'DIFF'},
 	{key: 'poles', label: 'POLES'},
 ];
 
@@ -46,6 +46,11 @@ const LegendSpan = styled.span`
 	cursor: pointer;
 `;
 
+const defaultSortBy = {
+	key: 'averageQualifying',
+	direction: 'desc'
+};
+
 const Qualifying = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
@@ -58,100 +63,58 @@ const Qualifying = () => {
 	const { content: qualifyingResults, loading: qualifyingLoading, error: qualifyingResultsError } = useSelector(getQualifying);
 	const { content: trackList, loading: trackListLoading, error: trackListError } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading, error: participantsError } = useSelector(getParticipants);
-	const { content: raceResults, loading: raceResultsLoading, error: raceResultsError } = useSelector(getRaceResults);
-	const { content: lastPlacePositions, loading: lastPlacePositionsLoading } = useSelector(getLastPlacePositions);
+	const { content: driverStats, loading: driverStatsLoading, error: driverStatsError } = useSelector(getDriverStats);
 
 	if (isEmpty(qualifyingResults) && !qualifyingLoading && !qualifyingResultsError) dispatch(fetchQualifying());
 	if (isEmpty(trackList) && !trackListLoading && !trackListError) dispatch(fetchTrackList());
 	if (isEmpty(participants) && !participantsLoading && !participantsError) dispatch(fetchParticipants());
-	if (isEmpty(raceResults) && !raceResultsLoading && !raceResultsError) dispatch(fetchRaceResults());
+	if (isEmpty(driverStats) && !driverStatsLoading && !driverStatsError) dispatch(fetchDriverStats());
 
 	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
-	const getRaceFinishValue = (resultStr) => resultStr === 'DNF' || resultStr === 'DNS' ? -1 : parseInt(resultStr);
-
-	const stats = useMemo(() => {
-		if (!raceResultsLoading && !qualifyingLoading && !lastPlacePositionsLoading) {
-			const groupedDrivers = groupBy(qualifyingResults, 'Driver');
-			if (isEmpty(groupedDrivers)) return [];
-			const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
-				const results = first(driverResults);
-				let difference = 0;
-				let totalQualifying = 0;
-				let totalRaces = 0;
-				let poles = 0;
-				Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
-					if (result !== 'DNS') {
-						const raceFinishStr = raceResults.find(raceResult => raceResult['Driver'] === driver)[track];
-						const raceFinish = getRaceFinishValue(raceFinishStr);
-						difference += parseInt(result) - (raceFinish === -1 ? (lastPlacePositions[track] + 1) : raceFinish);
-						totalRaces++;
-					}
-
-					if (result !== 'DNF' && result !== 'DNS') totalQualifying += parseInt(result);
-					if (parseInt(result) === 1) poles ++;
-				});
-
-				const average = totalRaces > 0 ? totalQualifying / totalRaces : '-';
-				const avgDifference= totalRaces > 0 ? difference / totalRaces: '-';
-
-				return {
-					driver,
-					average: average === 0 ? '-' : average,
-					avgDifference,
-					poles,
-				}
-			})
-			return driverStats;
-		}
-		return [];
-	}, [qualifyingResults, raceResults, lastPlacePositions, raceResultsLoading, qualifyingLoading, lastPlacePositionsLoading]);
-
 	useEffect(() => {
 		const qualifyingResultsCopy = [...qualifyingResults];
-		const statsCopy = [...stats];
+		const statsCopy = [...driverStats];
 		if (sortBy === null) {
-			setSortedStats(statsCopy);
-			setSortedQualifyingResults(qualifyingResultsCopy);
-		}
-		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
-			const sortedStats =  [...statsCopy.sort((a, b) => tableSortFunction(a, b, sortBy, ['average']))]
+			const sortedStats =  [...statsCopy.sort((a, b) => tableSortFunction(a, b, defaultSortBy, ['averageQualifying']))]
 			setSortedStats(sortedStats);
 			const sortedDrivers = sortedStats.map(stat => stat.driver);
-			setSortedQualifyingResults([...qualifyingResultsCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
+			setSortedQualifyingResults([...qualifyingResultsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+		}
+		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+			const sortedStats =  [...statsCopy.sort((a, b) => tableSortFunction(a, b, sortBy, ['averageQualifying']))]
+			setSortedStats(sortedStats);
+			const sortedDrivers = sortedStats.map(stat => stat.driver);
+			setSortedQualifyingResults([...qualifyingResultsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
 		} else {
 			const sortedQualifyingResults = [...qualifyingResultsCopy.sort((a, b) => tableSortFunction(a, b, sortBy, 'all'))];
 			setSortedQualifyingResults(sortedQualifyingResults);
-			const sortedDrivers = sortedQualifyingResults.map((qualifyingResult) => qualifyingResult['Driver']);
+			const sortedDrivers = sortedQualifyingResults.map((qualifyingResult) => qualifyingResult.driver);
 			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
 		}
-	}, [qualifyingResults, sortBy, stats]);
-
-	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
-		Track
-	), [trackList]);
+	}, [qualifyingResults, sortBy, driverStats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...qualifyingResults.map(row =>
-			resultHeaders.map(track => parseInt(row[track])).filter(position => !isNaN(position))
+			trackList.map(({key}) => parseInt(row[key])).filter(position => !isNaN(position))
 		).flat()) ?? 0
-	}, [resultHeaders, qualifyingResults]);
+	}, [trackList, qualifyingResults]);
 
 	const data = useMemo(() => {
-		return resultHeaders.map(track => {
+		return trackList.map(track => {
 			const trackScores = {
-				name: formatTrackName(track)
+				name: formatTrackName(track.label)
 			};
 			qualifyingResults.forEach(row => {
-				let result = row[track];
+				let result = row[track.key];
 				if (result === 'DNS' || result === 'DNF' || result === undefined) return;
 
-				trackScores[row['Driver']] = parseInt(result);
+				trackScores[row.driver] = +result;
 			});
 			return trackScores;
 		})
-	}, [resultHeaders, qualifyingResults, formatTrackName])
+	}, [trackList, qualifyingResults, formatTrackName])
 
 	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
@@ -170,10 +133,10 @@ const Qualifying = () => {
 				</thead>
 				<tbody>
 					{sortedQualifyingResults.map((row) => (
-						<tr key={row['Driver']}>
+						<tr key={row.driver}>
 							<td className={`qualifying__table-cell`}>
 								<div className='qualifying__driver-label'>
-									{formatDriverName(row["Driver"])} <ConstructorBadge constructor={row["Car"]} />
+									{formatDriverName(row.driver)} <ConstructorBadge constructor={row.car} />
 								</div>
 							</td>
 						</tr>
@@ -211,26 +174,26 @@ const Qualifying = () => {
 				<table>
 					<thead>
 						<tr>
-						{resultHeaders.map(header => 
+						{trackList.map(track => 
 							<th 
-								key={header} 
+								key={track.key} 
 								className="qualifying__table-header qualifying__table-header--sortable" 
-								onClick={() => sortByKey(header)}
+								onClick={() => sortByKey(track.key)}
 							>
-								{formatTrackName(header)} {getSortIcon(header)}
+								{formatTrackName(track.label)} {getSortIcon(track.key)}
 							</th>
 						)}
 						</tr>
 					</thead>
 					<tbody>
 						{sortedQualifyingResults.map((row) => (
-							<tr key={row['Driver']}>
-								{resultHeaders.map((header, index) =>
+							<tr key={row.driver}>
+								{trackList.map((track, index) =>
 									<td
-										key={`${row['Driver']}-${index}`}
-										className={`qualifying__table-cell ${getClassName(header)}`}>
-										<TableTooltip innerHtml={header}>
-											{row[header]}
+										key={`${row.driver}-${index}`}
+										className={`qualifying__table-cell ${getClassName(track.key)}`}>
+										<TableTooltip innerHtml={track.label}>
+											{row[track.key]}
 										</TableTooltip>
 									</td>
 								)}
@@ -240,7 +203,7 @@ const Qualifying = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedQualifyingResults, sortByKey, getSortIcon]);
+	}, [trackList, formatTrackName, sortedQualifyingResults, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="qualifying__end-subtable-container--right">
@@ -268,13 +231,13 @@ const Qualifying = () => {
 							<tr key={driverStats.driver}>
 								<td
 									className={`qualifying__table-cell`}>
-									<TableTooltip innerHtml={round(driverStats.average, 8)} hangLeft>
-										{round(driverStats.average)}
+									<TableTooltip innerHtml={round(driverStats.averageQualifying, 8)} hangLeft>
+										{round(driverStats.averageQualifying)}
 									</TableTooltip>
 								</td>
 								<td
 									className={`qualifying__table-cell`}>
-									{displayAverageDifference(driverStats.avgDifference)}
+									{displayAverageDifference(driverStats.averageDifference)}
 								</td>
 								<td
 									className={`qualifying__table-cell`}>
@@ -288,17 +251,17 @@ const Qualifying = () => {
 		</div>
 	), [sortedStats, showStats, sortByKey, getSortIcon]);
 
-	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : graphFilter?.includes(item['Driver']) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : 0.15;
+	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item.isPrimary ? 0.9 : 0.7 : graphFilter?.includes(item.driver) ? item.isPrimary ? 0.9 : 0.7 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
 
 	const renderLines = () => participants.map((row) => (
 		<Line
-			key={row["Driver"]}
+			key={row.driver}
 			type="monotone"
-			dataKey={row["Driver"]}
-			stroke={getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row))}
+			dataKey={row.driver}
+			stroke={getCarColor(row.car, row.isPrimary, getCustomLineOpacity(row))}
 			connectNulls
-			strokeWidth={getStrokeWidth(row['Driver'])}
+			strokeWidth={getStrokeWidth(row.driver)}
 		/>
 	));
 

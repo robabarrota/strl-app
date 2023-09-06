@@ -2,7 +2,6 @@ import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { getMedalCount } from 'src/redux/selectors';
 import { fetchMedalCount } from 'src/redux/actions';
-import { isEmpty } from 'lodash';
 import React, { useMemo, useState, useCallback } from 'react';
 
 import {
@@ -17,17 +16,17 @@ import {
 
 const MedalCount = () => {
 	const dispatch = useDispatch();
-	const { content: medalCount, loading: medalCountLoading, error: medalCountError } = useSelector(getMedalCount);
+	const { content: medalCount, loading: medalCountLoading, error: medalCountError, fetched: medalCountFetched } = useSelector(getMedalCount);
 
-	if (isEmpty(medalCount) && !medalCountLoading && !medalCountError) dispatch(fetchMedalCount());
+	if (!medalCountFetched && !medalCountLoading && !medalCountError) dispatch(fetchMedalCount());
 
 	const [sortBy, setSortBy] = useState(null);
 
 	const medalSortFunction = useCallback((a, b) => {
-		if ( parseInt(a[sortBy.key]) < parseInt(b[sortBy.key]) ){
+		if ( +a[sortBy.key] < +b[sortBy.key] ){
 			return sortBy.direction === 'desc' ? -1 : 1;
 		}
-		if ( parseInt(a[sortBy.key]) > parseInt(b[sortBy.key]) ){
+		if ( +a[sortBy.key] > +b[sortBy.key] ){
 			return sortBy.direction === 'desc' ? 1 : -1;
 		}
 		return 0;
@@ -67,9 +66,9 @@ const MedalCount = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{sortedMedalCount.map(({ Driver }) => (
-						<tr key={Driver} >
-							<td className='medal-count__table-cell'><div>{Driver}</div></td>
+					{sortedMedalCount.map(({ driver }) => (
+						<tr key={driver} >
+							<td className='medal-count__table-cell'><div>{driver}</div></td>
 						</tr>
 					))}
 				</tbody>
@@ -110,12 +109,12 @@ const MedalCount = () => {
 						</tr>
 					</thead>
 					<tbody>
-						{sortedMedalCount.map(({ Driver, Gold, Silver, Bronze, Cup }) => (
-							<tr key={Driver} >
-								<td className='medal-count__table-cell'><div>{Gold}</div></td>
-								<td className='medal-count__table-cell'><div>{Silver}</div></td>
-								<td className='medal-count__table-cell'><div>{Bronze}</div></td>
-								<td className='medal-count__table-cell'><div>{Cup}</div></td>
+						{sortedMedalCount.map(({ driver, gold, silver, bronze, cup }) => (
+							<tr key={driver} >
+								<td className='medal-count__table-cell'><div>{gold}</div></td>
+								<td className='medal-count__table-cell'><div>{silver}</div></td>
+								<td className='medal-count__table-cell'><div>{bronze}</div></td>
+								<td className='medal-count__table-cell'><div>{cup}</div></td>
 							</tr>
 						))}
 					</tbody>
@@ -138,9 +137,9 @@ const MedalCount = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{sortedMedalCount.map(({ Driver, Points }) => (
-						<tr key={Driver} >
-							<td className='medal-count__table-cell'><div>{Points}</div></td>
+					{sortedMedalCount.map(({ driver, points }) => (
+						<tr key={driver} >
+							<td className='medal-count__table-cell'><div>{points}</div></td>
 						</tr>
 					))}
 				</tbody>
@@ -164,18 +163,18 @@ const MedalCount = () => {
 				>
 				<CartesianGrid strokeDasharray="3 3" />
 				<XAxis type="number" interval={0} domain={['dataMin', 'dataMax']} tickMargin={0} minTickGap={0}/>
-				<YAxis type="category" dataKey="Driver" tickFormatter={formatDriverName} interval={0} />
-				<Bar dataKey="Gold" stackId="a" fill="#C9B037" />
-				<Bar dataKey="Silver" stackId="a" fill="#B4B4B4" />
-				<Bar dataKey="Bronze" stackId="a" fill="#AD8A56" />
-				<Bar dataKey="Cup" stackId="a" fill="#FFC107" />
+				<YAxis type="category" dataKey="driver" tickFormatter={formatDriverName} interval={0} />
+				<Bar dataKey="gold" stackId="a" fill="#C9B037" />
+				<Bar dataKey="silver" stackId="a" fill="#B4B4B4" />
+				<Bar dataKey="bronze" stackId="a" fill="#AD8A56" />
+				<Bar dataKey="cup" stackId="a" fill="#FFC107" />
 				<ChartTooltip cursor={false} />
 
 			</BarChart>
 		</ResponsiveContainer >
 	);
 
-	const isDataReady = !isEmpty(medalCount) && !medalCountLoading;
+	const isDataReady = medalCountFetched && !medalCountLoading;
 
 	if (isDataReady) {
 		return (

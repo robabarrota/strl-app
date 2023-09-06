@@ -2,7 +2,6 @@ import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTrackList } from 'src/redux/selectors';
 import { fetchTrackList } from 'src/redux/actions';
-import { isEmpty } from 'lodash';
 import React, { useMemo, useRef } from 'react';
 import { trackDetails } from 'src/utils/constants';
 import styled from 'styled-components';
@@ -88,12 +87,11 @@ const Schedule = () => {
 		}
 	};
 
-	const { content: trackList, loading: trackListLoading, error: trackListError } = useSelector(getTrackList);
+	const { content: trackList, loading: trackListLoading, error: trackListError, fetched: trackListFetched } = useSelector(getTrackList);
 
-	if (isEmpty(trackList) && !trackListLoading && !trackListError) dispatch(fetchTrackList());
+	if (!trackListFetched && !trackListLoading && !trackListError) dispatch(fetchTrackList());
 
-	const isDataReady = useMemo(() => !(isEmpty(trackList) || trackListLoading),
-		[trackList, trackListLoading])
+	const isDataReady = useMemo(() => trackListFetched && !trackListLoading, [trackListFetched, trackListLoading])
 
 	const getDayRange = (date) => {
 		const startDate = new Date(date);
@@ -113,12 +111,12 @@ const Schedule = () => {
 	const nextTrack = useMemo(() => {
 		const now = new Date();
 		now.setHours(0,0,0,0);
-		return trackList.find(({ Date: date }) => new Date(date) >= now);
+		return trackList.find(({ date }) => new Date(date) >= now);
 	}, [trackList]);
 
 	const nextRaceDate = useMemo(() => {
 		if (!nextTrack) return new Date();
-		const date = new Date(nextTrack['Date']);
+		const date = new Date(nextTrack.date);
 		date.setHours(19, 30, 0)
 		return date;
 	}, [nextTrack])
@@ -126,14 +124,14 @@ const Schedule = () => {
 	const completedRaces = useMemo(() => {
 		const now = new Date();
 		now.setHours(0,0,0,0);
-		return trackList.filter(({ Date: date }) => new Date(date) < now);
+		return trackList.filter(({ date }) => new Date(date) < now);
 	}, [trackList])
 
 	const futureRaces = useMemo(() => {
 		if (!nextTrack) return [];
 		const now = new Date();
 		now.setHours(0,0,0,0);
-		return trackList.filter((track) => new Date(track['Date']) > now && track['Track'] !== nextTrack['Track']);
+		return trackList.filter(({date, key}) => new Date(date) > now && key !== nextTrack.key);
 	}, [trackList, nextTrack])
 
 	if (isDataReady) {
@@ -145,7 +143,7 @@ const Schedule = () => {
 				</HeaderContainer>
 
 				<div className="schedule__race-card-container">
-					{completedRaces.map(({ Date: date, Track }, index) => {
+					{completedRaces.map(({ date, label }, index) => {
 						return (
 							<EventCard key={`round-${index + 1}`}>
 								<RoundTitle>Round {index + 1}</RoundTitle>
@@ -153,7 +151,7 @@ const Schedule = () => {
 									<div className="schedule__top-bar">
 										<p className="schedule__days">{getDayRange(date)}</p>
 										<CountryFlag completed>
-											<img src={trackDetails[Track]?.flag} alt={`${Track} flag`} />
+											<img src={trackDetails[label]?.flag} alt={`${label} flag`} />
 										</CountryFlag>
 									</div>
 									<div className="schedule__month-container">
@@ -170,15 +168,15 @@ const Schedule = () => {
 								<div className="schedule__event-details">
 									<div className="schedule__event-description">
 										<div className="schedule__event-description--track">
-											{Track}
+											{label}
 										</div>
 										<div className="schedule__event-description--title">
-											{trackDetails[Track]?.fullName}
+											{trackDetails[label]?.fullName}
 										</div>
 									</div>
 								</div>
 								<div className="schedule__event-image">
-									<img src={trackDetails[Track]?.map} alt={`${Track} map`} />
+									<img src={trackDetails[label]?.map} alt={`${label} map`} />
 								</div>
 							</EventCard>
 						)
@@ -193,12 +191,12 @@ const Schedule = () => {
 									<div className="schedule__event-info">
 										<div className="schedule__top-bar">
 											<div>
-												<p className="schedule__days">{getDayRange(nextTrack['Date'])}</p>
+												<p className="schedule__days">{getDayRange(nextTrack.date)}</p>
 												<div className="schedule__month-container">
 													<span className="schedule__month">
-														{new Date(nextTrack['Date']).toLocaleString('default', { month: 'short' })}
+														{new Date(nextTrack.date).toLocaleString('default', { month: 'short' })}
 													</span>
-													{isRaceOver(nextTrack['Date']) &&
+													{isRaceOver(nextTrack.date) &&
 														<span className="schedule__finish-banner-container">
 															<img src="https://www.formula1.com/etc/designs/fom-website/images/flag-asset.png" alt="race finished" />
 														</span>
@@ -206,7 +204,7 @@ const Schedule = () => {
 												</div>
 											</div>
 											<CountryFlag>
-												<img src={trackDetails[nextTrack['Track']]?.flag} alt={`${nextTrack['Track']} flag`} />
+												<img src={trackDetails[nextTrack.label]?.flag} alt={`${nextTrack.label} flag`} />
 											</CountryFlag>
 										</div>
 										
@@ -214,15 +212,15 @@ const Schedule = () => {
 									<div className="schedule__event-details">
 										<div className="schedule__event-description">
 											<div className="schedule__event-description--track">
-												{nextTrack['Track']}
+												{nextTrack.label}
 											</div>
 											<div className="schedule__event-description--title">
-												{trackDetails[nextTrack['Track']]?.fullName}
+												{trackDetails[nextTrack.label]?.fullName}
 											</div>
 										</div>
 									</div>
 									<div className="schedule__current-event-image">
-										<img src={trackDetails[nextTrack['Track']]?.whiteMap} alt={`${nextTrack['Track']} map`} />
+										<img src={trackDetails[nextTrack.label]?.whiteMap} alt={`${nextTrack.label} map`} />
 									</div>
 								</div>
 								{!isMobile && <WeatherPanel trackInfo={nextTrack}/>}
@@ -236,7 +234,7 @@ const Schedule = () => {
 					</div>
 				}
 				<div className="schedule__race-card-container">
-					{futureRaces.map(({ Date: date, Track }, index) => {
+					{futureRaces.map(({ date, label }, index) => {
 						return (
 							<EventCard key={`round-${index + 1}`}>
 								<RoundTitle>Round {index + 1}</RoundTitle>
@@ -256,7 +254,7 @@ const Schedule = () => {
 												</div>
 											</div>
 										<CountryFlag>
-											<img src={trackDetails[Track]?.flag} alt={`${Track} flag`} />
+											<img src={trackDetails[label]?.flag} alt={`${label} flag`} />
 										</CountryFlag>
 									</div>
 									
@@ -264,15 +262,15 @@ const Schedule = () => {
 								<div className="schedule__event-details">
 									<div className="schedule__event-description">
 										<div className="schedule__event-description--track">
-											{Track}
+											{label}
 										</div>
 										<div className="schedule__event-description--title">
-											{trackDetails[Track]?.fullName}
+											{trackDetails[label]?.fullName}
 										</div>
 									</div>
 								</div>
 								<div className="schedule__event-image">
-									<img src={trackDetails[Track]?.map} alt={`${Track} map`} />
+									<img src={trackDetails[label]?.map} alt={`${label} map`} />
 								</div>
 							</EventCard>
 						)

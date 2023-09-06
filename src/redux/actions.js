@@ -48,5 +48,26 @@ export const setHighlights = highlights => ({ type: SET_HIGHLIGHTS, payload: { h
 export const FETCH_HIGHLIGHTS = `${prefix}/FETCH_HIGHLIGHTS`;
 export const fetchHighlights = () => ({ type: FETCH_HIGHLIGHTS });
 
-export const SET_LAST_PLACE_POSITIONS = `${prefix}/SET_LAST_PLACE_POSITIONS`;
-export const setLastPlacePositions = lastPlacePositions => ({ type: SET_LAST_PLACE_POSITIONS, payload: { lastPlacePositions } });
+export const SET_DRIVER_POINTS = `${prefix}/SET_DRIVER_POINTS`;
+export const setDriverPoints = driverPoints => ({ type: SET_DRIVER_POINTS, payload: { driverPoints } });
+
+export const FETCH_DRIVER_POINTS = `${prefix}/FETCH_DRIVER_POINTS`;
+export const fetchDriverPoints = () => ({ type: FETCH_DRIVER_POINTS });
+
+export const SET_DRIVER_STATS = `${prefix}/SET_DRIVER_STATS`;
+export const setDriverStats = driverStats => ({ type: SET_DRIVER_STATS, payload: { driverStats } });
+
+export const FETCH_DRIVER_STATS = `${prefix}/FETCH_DRIVER_STATS`;
+export const fetchDriverStats = () => ({ type: FETCH_DRIVER_STATS });
+
+export const SET_CONSTRUCTOR_POINTS = `${prefix}/SET_CONSTRUCTOR_POINTS`;
+export const setConstructorPoints = constructorPoints => ({ type: SET_CONSTRUCTOR_POINTS, payload: { constructorPoints } });
+
+export const FETCH_CONSTRUCTOR_POINTS = `${prefix}/FETCH_CONSTRUCTOR_POINTS`;
+export const fetchConstructorPoints = () => ({ type: FETCH_CONSTRUCTOR_POINTS });
+
+export const SET_CONSTRUCTOR_STATS = `${prefix}/SET_CONSTRUCTOR_STATS`;
+export const setConstructorStats = constructorStats => ({ type: SET_CONSTRUCTOR_STATS, payload: { constructorStats } });
+
+export const FETCH_CONSTRUCTOR_STATS = `${prefix}/FETCH_CONSTRUCTOR_STATS`;
+export const fetchConstructorStats = () => ({ type: FETCH_CONSTRUCTOR_STATS });

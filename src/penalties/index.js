@@ -1,8 +1,8 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getPenalties, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchPenalties, fetchTrackList, fetchParticipants } from 'src/redux/actions';
-import { isEmpty, groupBy, first } from 'lodash';
+import { getPenalties, getDriverStats, getTrackList, getParticipants } from 'src/redux/selectors';
+import { fetchPenalties, fetchDriverStats, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { isEmpty } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
@@ -23,7 +23,7 @@ import {
 import styled from 'styled-components';
 
 const statHeaders = [
-	{key: 'average', label: 'AVG'},
+	{key: 'averagePenalties', label: 'AVG'},
 ];
 
 const LegendWrapper = styled.div`
@@ -53,46 +53,22 @@ const Penalties = () => {
 	const [sortedStats, setSortedStats] = useState([]);
 	const isMobile = useIsMobile();
 
-	const { content: penalties, loading: penaltiesLoading, error: penaltiesError } = useSelector(getPenalties);
-	const { content: trackList, loading: trackListLoading, error: trackListError } = useSelector(getTrackList);
-	const { content: participants, loading: participantsLoading, error: participantsError } = useSelector(getParticipants);
+	const { content: penalties, loading: penaltiesLoading, error: penaltiesError, fetched: penaltiesFetched } = useSelector(getPenalties);
+	const { content: driverStats, loading: driverStatsLoading, error: driverStatsError, fetched: driverStatsFetched } = useSelector(getDriverStats);
+	const { content: trackList, loading: trackListLoading, error: trackListError, fetched: trackListFetched } = useSelector(getTrackList);
+	const { content: participants, loading: participantsLoading, error: participantsError, fetched: participantsFetched } = useSelector(getParticipants);
 
-	if (isEmpty(penalties) && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
-	if (isEmpty(trackList) && !trackListLoading && !trackListError) dispatch(fetchTrackList());
-	if (isEmpty(participants) && !participantsLoading && !participantsError) dispatch(fetchParticipants());
+	if (!penaltiesFetched && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
+	if (!driverStatsFetched && !driverStatsLoading && !driverStatsError) dispatch(fetchDriverStats());
+	if (!trackListFetched && !trackListLoading && !trackListError) dispatch(fetchTrackList());
+	if (!participantsFetched && !participantsLoading && !participantsError) dispatch(fetchParticipants());
 
 	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile])
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
-	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(penalties, 'Driver');
-		if (isEmpty(groupedDrivers)) return [];
-		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
-			const results = first(driverResults);
-			let racesMissed = 0;
-			let totalPenalties = 0;
-			let totalRaces = 0;
-			Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').forEach(([track, result]) => {
-				const penaltyPoints = parseInt(result);
-				if (!isNaN(penaltyPoints)) totalPenalties += parseInt(result);
-				totalRaces++;
-			});
-			
-			const calculatedAverage = totalPenalties / (totalRaces - racesMissed);
-			const average = isNaN(calculatedAverage) ? '-' : calculatedAverage;
-
-
-			return {
-				driver,
-				average,
-			}
-		})
-		return driverStats;
-	}, [penalties]);
-
 	useEffect(() => {
 		const penaltiesCopy = [...penalties];
-		const statsCopy = [...stats];
+		const statsCopy = [...driverStats];
 		if (sortBy === null) {
 			setSortedStats(statsCopy);
 			setSortedPenalties(penaltiesCopy);
@@ -101,39 +77,35 @@ const Penalties = () => {
 			const sortedStats =  [...statsCopy.sort((a, b) => tableSortFunction(a, b, sortBy))]
 			setSortedStats(sortedStats);
 			const sortedDrivers = sortedStats.map(stat => stat.driver);
-			setSortedPenalties([...penaltiesCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
+			setSortedPenalties([...penaltiesCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
 		} else {
 			const sortedPenalties = [...penaltiesCopy.sort((a, b) => tableSortFunction(a, b, sortBy))];
 			setSortedPenalties(sortedPenalties);
-			const sortedDrivers = sortedPenalties.map((raceResult) => raceResult['Driver']);
+			const sortedDrivers = sortedPenalties.map((raceResult) => raceResult.driver);
 			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
 		}
-	}, [penalties, sortBy, stats]);
-
-	const resultHeaders = useMemo(() => trackList?.map(({Track}) =>
-		Track
-	), [trackList]);
+	}, [penalties, sortBy, driverStats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...penalties.map(row =>
-			resultHeaders.map(track => parseInt(row[track])).filter(position => !isNaN(position))
+			trackList.map(({key}) => +row[key]).filter(position => !isNaN(position))
 		).flat()) ?? 0
-	}, [resultHeaders, penalties]);
+	}, [trackList, penalties]);
 
-	const data = useMemo(() => {
-		return resultHeaders.map(track => {
+	const data = useMemo(() => 
+		trackList.map(track => {
 			const trackPenalties = {
-				name: formatTrackName(track)
+				name: formatTrackName(track.label)
 			};
 			penalties.forEach(row => {
-				let result = row[track];
+				let result = row[track.key];
 				if (result === '' || result === undefined) return;
 
-				trackPenalties[row['Driver']] = parseInt(result);
+				trackPenalties[row.driver] = +result;
 			});
 			return trackPenalties;
 		})
-	}, [resultHeaders, penalties, formatTrackName])
+	, [trackList, penalties, formatTrackName])
 
 	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
@@ -153,10 +125,10 @@ const Penalties = () => {
 				</thead>
 				<tbody>
 					{sortedPenalties.map((row) => (
-						<tr key={row['Driver']}>
+						<tr key={row.driver}>
 							<td className={`penalties__table-cell`}>
 								<div className='penalties__driver-label'>
-									{formatDriverName(row["Driver"])} <ConstructorBadge constructor={row["Car"]} />
+									{formatDriverName(row.driver)} <ConstructorBadge constructor={row.car} />
 								</div>
 							</td>
 						</tr>
@@ -186,26 +158,26 @@ const Penalties = () => {
 				<table>
 					<thead>
 						<tr>
-							{resultHeaders.map(header => 
+							{trackList.map(track => 
 								<th 
-									key={header} 
+									key={track.key} 
 									className="penalties__table-header penalties__table-header--sortable" 
-									onClick={() => sortByKey(header)}
+									onClick={() => sortByKey(track.key)}
 								>
-									{formatTrackName(header)} {getSortIcon(header)}
+									{formatTrackName(track.label)} {getSortIcon(track.key)}
 								</th>
 							)}
 						</tr>
 					</thead>
 					<tbody>
 						{sortedPenalties.map((row) => (
-							<tr key={row['Driver']}>
-								{resultHeaders.map((header, index) =>
+							<tr key={row.driver}>
+								{trackList.map((track, index) =>
 									<td
-										key={`${row['Driver']}-${index}`}
-										className={`penalties__table-cell ${getClassName(header)}`}>
-											<TableTooltip innerHtml={header}>
-												{row[header]}
+										key={`${row.driver}-${index}`}
+										className={`penalties__table-cell ${getClassName(track.key)}`}>
+											<TableTooltip innerHtml={track.label}>
+												{row[track.key]}
 											</TableTooltip>
 									</td>
 								)}
@@ -215,7 +187,7 @@ const Penalties = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedPenalties, sortByKey, getSortIcon]);
+	}, [trackList, formatTrackName, sortedPenalties, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => (
 		<div className="penalties__end-subtable-container--right">
@@ -243,8 +215,8 @@ const Penalties = () => {
 							<tr key={driverStats.driver}>
 								<td
 									className={`penalties__table-cell`}>
-									<TableTooltip innerHtml={round(driverStats.average, 8)} hangLeft>
-										{round(driverStats.average)}
+									<TableTooltip innerHtml={round(driverStats.averagePenalties, 8)} hangLeft>
+										{round(driverStats.averagePenalties)}
 									</TableTooltip>
 								</td>
 							</tr>
@@ -255,17 +227,17 @@ const Penalties = () => {
 		</div>
 	), [sortedStats, showStats, sortByKey, getSortIcon]);
 
-	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : graphFilter?.includes(item['Driver']) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : 0.15;
+	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item.isPrimary ? 0.9 : 0.7 : graphFilter?.includes(item.driver) ? item.isPrimary ? 0.9 : 0.7 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
 
 	const renderLines = () => participants.map((row) => (
 		<Line
-			key={row["Driver"]}
+			key={row.driver}
 			type="monotone"
-			dataKey={row["Driver"]}
-			stroke={getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row))}
+			dataKey={row.driver}
+			stroke={getCarColor(row.car, row.isPrimary, getCustomLineOpacity(row))}
 			connectNulls
-			strokeWidth={getStrokeWidth(row['Driver'])}
+			strokeWidth={getStrokeWidth(row.driver)}
 		/>
 	));
 
@@ -316,7 +288,7 @@ const Penalties = () => {
 	);
 
 	const isDataReady = (
-		!isEmpty(sortedPenalties) && !penaltiesLoading
+		penaltiesFetched && !penaltiesLoading
 		&& !isEmpty(trackList) && !trackListLoading
 		&& !isEmpty(participants) && !participantsLoading
 	);

@@ -9,5 +9,8 @@ export const getFastestLaps = state => getDomainsState(state).fastestLaps;
 export const getPenalties = state => getDomainsState(state).penalties;
 export const getMedalCount = state => getDomainsState(state).medalCount;
 export const getHighlights = state => getDomainsState(state).highlights;
-export const getLastPlacePositions = state => getDomainsState(state).lastPlacePositions;
+export const getDriverPoints = state => getDomainsState(state).driverPoints;
+export const getDriverStats = state => getDomainsState(state).driverStats;
+export const getConstructorPoints = state => getDomainsState(state).constructorPoints;
+export const getConstructorStats = state => getDomainsState(state).constructorStats;
 

@@ -1,7 +1,7 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRaceResults, getFastestLaps, getPenalties, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchRaceResults, fetchFastestLaps, fetchPenalties, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { getConstructorPoints, getConstructorStats, getRaceResults, getTrackList, getParticipants } from 'src/redux/selectors';
+import { fetchConstructorPoints, fetchConstructorStats, fetchRaceResults, fetchTrackList, fetchParticipants } from 'src/redux/actions';
 import { isEmpty, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
@@ -9,7 +9,6 @@ import useIsMobile from 'src/hooks/useIsMobile';
 import {
 	carAbbreviationMap,
 	trackDetails,
-	pointMap
 } from 'src/utils/constants';
 import { round, getCarColor, tableSortFunction } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
@@ -27,7 +26,7 @@ import styled from 'styled-components';
 
 const statHeaders = [
 	{key: 'total', label: 'TOTAL'},
-	{key: 'average', label: 'AVG'},
+	{key: 'averagePoints', label: 'AVG'},
 ];
 
 const LegendWrapper = styled.div`
@@ -47,6 +46,12 @@ const LegendSpan = styled.span`
 	white-space: nowrap;
 	cursor: pointer;
 `;
+
+const defaultSortBy = {
+	key: 'total',
+	direction: 'desc'
+};
+
 const ConstructorStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
@@ -57,116 +62,66 @@ const ConstructorStandings = () => {
 	const isMobile = useIsMobile();
 
 	const { content: raceResults, loading: raceResultsLoading, fetched: raceResultsFetched, error: raceResultsError } = useSelector(getRaceResults);
-	const { content: fastestLaps, loading: fastestLapsLoading, fetched: fastestLapsFetched, error: fastestLapsError } = useSelector(getFastestLaps);
-	const { content: penalties, loading: penaltiesLoading, fetched: penaltiesFetched, error: penaltiesError } = useSelector(getPenalties);
+	const { content: constructorPoints, loading: constructorPointsLoading, fetched: constructorPointsFetched, error: constructorPointsError } = useSelector(getConstructorPoints);
+	const { content: constructorStats, loading: constructorStatsLoading, fetched: constructorStatsFetched, error: constructorStatsError } = useSelector(getConstructorStats);
 	const { content: trackList, loading: trackListLoading, fetched: trackListFetched, error: trackListError } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading, fetched: participantsFetched, error: participantsError } = useSelector(getParticipants);
 
 	if (!raceResultsFetched && !raceResultsLoading && !raceResultsError) dispatch(fetchRaceResults());
-	if (!fastestLapsFetched && !fastestLapsLoading && !fastestLapsError) dispatch(fetchFastestLaps());
-	if (!penaltiesFetched && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
+	if (!constructorPointsFetched && !constructorPointsLoading && !constructorPointsError) dispatch(fetchConstructorPoints());
+	if (!constructorStatsFetched && !constructorStatsLoading && !constructorStatsError) dispatch(fetchConstructorStats());
 	if (!trackListFetched && !trackListLoading && !trackListError) dispatch(fetchTrackList());
 	if (!participantsFetched && !participantsLoading && !participantsError) dispatch(fetchParticipants());
 
 	const formatConstructorName = useCallback((constructor) => !isMobile ? constructor : carAbbreviationMap[constructor], [isMobile])
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile])
 
-	const resultHeaders = useMemo(() => trackList?.map(({ Track }) => Track), [trackList]);
-
-	const constructors = useMemo(() => [...new Set(participants?.map(({ Car }) => Car))], [participants])
-
-	const constructorPoints = useMemo(() => {
-		let results = [];
-		if (!isEmpty(resultHeaders) && raceResultsFetched && fastestLapsFetched && penaltiesFetched) {
-			results = raceResults.reduce((acc, row) => {
-				const constructorName = row['Car'];
-				const constructor = { 'Car': constructorName };
-				const constructorIndex = acc.findIndex(constructors => constructors['Car'] === constructorName);
-				const driverName = row['Driver'];
-				const driverPenalties = penalties.find(penaltyRow => penaltyRow['Driver'] === driverName);
-				resultHeaders.forEach(header => {
-					let racePoints = pointMap[row[header]];
-					if (racePoints !== undefined) {
-						if (fastestLaps[header] === driverName && row[header] <= 10) racePoints += 1;
-						const racePenalty = driverPenalties[header] ?? 0;
-						racePoints -= racePenalty;
-					}
-					if (constructorIndex > -1 && racePoints !== undefined) {
-						acc[constructorIndex][header] += racePoints;  
-					} else {
-						constructor[header] = racePoints;
-					}
-				});
-				if (constructorIndex === -1) acc.push(constructor);
-				return acc;
-			}, []);
-		}
-		return results;
-	}, [raceResults, resultHeaders, fastestLaps, penalties, raceResultsFetched, fastestLapsFetched, penaltiesFetched]);
-
-	const stats = useMemo(() => 
-		constructorPoints.map(constructor => {
-			const name = constructor['Car'];
-			let totalRaces = 0;
-			const totalPoints = Object.entries(constructor)
-			.filter(([key, value]) => key !== 'Car')
-			.reduce((acc, [track, points]) => {
-				if (Number.isInteger(points)) acc += Number(points);
-				if (points !== undefined) totalRaces++;
-				return acc;
-			}, 0)
-			return {
-				constructor: name,
-				average: totalPoints / totalRaces,
-				total: totalPoints,
-			}
-		})
-	, [constructorPoints]);
+	const constructors = useMemo(() => [...new Set(participants?.map(({ car }) => car))], [participants])
 
 	useEffect(() => {
 		const constructorPointsCopy = [...constructorPoints];
-		const statsCopy = [...stats];
+		const statsCopy = [...constructorStats];
 		if (sortBy === null) {
-			setSortedStats(statsCopy);
-			setSortedConstructorPoints(constructorPointsCopy);
+			const sortedStats =  [...statsCopy.sort((a,b) => tableSortFunction(a, b, defaultSortBy))]
+			setSortedStats(sortedStats);
+			const sortedConstructors = sortedStats.map(stat => stat.car);
+			setSortedConstructorPoints([...constructorPointsCopy.sort((a, b) => sortedConstructors.indexOf(a.car) - sortedConstructors.indexOf(b.car))]);
 		}
 		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
 			const sortedStats =  [...statsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))]
 			setSortedStats(sortedStats);
-			const sortedConstructors = sortedStats.map(stat => stat.constructor);
-			setSortedConstructorPoints([...constructorPointsCopy.sort((a, b) => sortedConstructors.indexOf(a['Car']) - sortedConstructors.indexOf(b['Car']))]);
+			const sortedConstructors = sortedStats.map(stat => stat.car);
+			setSortedConstructorPoints([...constructorPointsCopy.sort((a, b) => sortedConstructors.indexOf(a.car) - sortedConstructors.indexOf(b.car))]);
 		} else {
 			const sortedConstructorPointsCopy = [...constructorPointsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))];
 			setSortedConstructorPoints(sortedConstructorPointsCopy);
-			const sortedConstructors = sortedConstructorPointsCopy.map((raceResult) => raceResult['Car']);
-			setSortedStats([...statsCopy.sort((a, b) => sortedConstructors.indexOf(a.constructor) - sortedConstructors.indexOf(b.constructor))]);
+			const sortedConstructors = sortedConstructorPointsCopy.map((raceResult) => raceResult.car);
+			setSortedStats([...statsCopy.sort((a, b) => sortedConstructors.indexOf(a.car) - sortedConstructors.indexOf(b.car))]);
 		}
-	}, [constructorPoints, sortBy, stats]);
+	}, [constructorPoints, sortBy, constructorStats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
-			resultHeaders.map(track => parseInt(row[track])).filter(position => !isNaN(position))
+			trackList.map(({key}) => +row[key]).filter(position => !isNaN(position))
 		).flat()) ?? 0
-	}, [resultHeaders, raceResults]);
+	}, [trackList, raceResults]);
 
 	const data = useMemo(() => 
-		{ 
-			return resultHeaders.reduce((acc, track) => {
+		trackList.reduce((acc, track) => {
 			const trackScores = {
-				name: formatTrackName(track)
+				name: formatTrackName(track.label)
 			};
 			constructorPoints.forEach(row => {
-				let result = row[track];
-				const previousScore = last(acc)?.[row['Car']] ?? 0;
+				let result = row[track.key];
+				const previousScore = last(acc)?.[row.car] ?? 0;
 				if (result === 'DNS' || result === 'DNF' || result === undefined) return;
 
-				trackScores[row['Car']] = parseInt(result) + previousScore;
+				trackScores[row.car] = +result + previousScore;
 			});
 			acc.push(trackScores);
 			return acc;
 		}, [])
-	}
-	, [resultHeaders, constructorPoints, formatTrackName])
+	, [trackList, constructorPoints, formatTrackName])
 
 	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
@@ -185,11 +140,11 @@ const ConstructorStandings = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{sortedConstructorPoints.map(({Car: name}) => (
-						<tr key={name}>
+					{sortedConstructorPoints.map(({car}) => (
+						<tr key={car}>
 							<td className={`constructor-standings__table-cell`}>
 								<div className='constructor-standings__driver-label'>
-									{formatConstructorName(name)} <ConstructorBadge constructor={name} />
+									{formatConstructorName(car)} <ConstructorBadge constructor={car} />
 								</div>
 							</td>
 						</tr>
@@ -219,26 +174,26 @@ const ConstructorStandings = () => {
 				<table>
 					<thead>
 						<tr>
-							{resultHeaders.map(header => 
-								<th 
-									key={header} 
+							{trackList.map(track => 
+								<th
+									key={track.key} 
 									className="constructor-standings__table-header constructor-standings__table-header--sortable" 
-									onClick={() => sortByKey(header)}
+									onClick={() => sortByKey(track.key)}
 								>
-									{formatTrackName(header)} {getSortIcon(header)}
+									{formatTrackName(track.label)} {getSortIcon(track.key)}
 								</th>
 							)}
 						</tr>
 					</thead>
 					<tbody>
 						{sortedConstructorPoints.map((row) => (
-							<tr key={row['Car']}>
-								{resultHeaders.map((header, index) =>
+							<tr key={row.car}>
+								{trackList.map((track, index) =>
 									<td
-										key={`${row['Car']}-${index}`}
-										className={`constructor-standings__table-cell ${getClassName(header)}`}>
-										<TableTooltip innerHtml={header}>
-											{row[header]}
+										key={`${row.car}-${index}`}
+										className={`constructor-standings__table-cell ${getClassName(track.key)}`}>
+										<TableTooltip innerHtml={track.label}>
+											{row[track.key]}
 										</TableTooltip>
 									</td>
 								)}
@@ -248,7 +203,7 @@ const ConstructorStandings = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedConstructorPoints, sortByKey, getSortIcon]);
+	}, [trackList, formatTrackName, sortedConstructorPoints, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
@@ -268,15 +223,15 @@ const ConstructorStandings = () => {
 				</thead>
 				<tbody>
 					{sortedStats.map((constructorStats) => (
-						<tr key={constructorStats.constructor}>
+						<tr key={constructorStats.car}>
 							<td
 								className={`constructor-standings__table-cell`}>
 								{constructorStats.total}
 							</td>
 							<td
 								className={`constructor-standings__table-cell`}>
-								<TableTooltip innerHtml={round(constructorStats.average, 8)} hangLeft>
-									{round(constructorStats.average)}
+								<TableTooltip innerHtml={round(constructorStats.averagePoints, 8)} hangLeft>
+									{round(constructorStats.averagePoints)}
 								</TableTooltip>
 							</td>
 						</tr>
@@ -358,6 +313,7 @@ const ConstructorStandings = () => {
 
 	const isDataReady = (
 		raceResultsFetched && !raceResultsLoading
+		&& constructorPointsFetched && !constructorPointsLoading
 		&& !isEmpty(trackList) && !trackListLoading
 		&& !isEmpty(participants) && !participantsLoading
 	);

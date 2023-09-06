@@ -1,12 +1,12 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getRaceResults, getFastestLaps, getPenalties, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchRaceResults, fetchFastestLaps, fetchTrackList, fetchParticipants, fetchPenalties } from 'src/redux/actions';
-import { isEmpty, groupBy, first, last, isNaN } from 'lodash';
+import { getDriverStats, getRaceResults, getDriverPoints, getTrackList, getParticipants } from 'src/redux/selectors';
+import { fetchDriverStats, fetchRaceResults, fetchDriverPoints, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { isEmpty, isNaN, last } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import ConstructorBadge from 'src/components/constructor-badge';
 import useIsMobile from 'src/hooks/useIsMobile';
-import { pointMap, trackDetails } from 'src/utils/constants';
+import { trackDetails } from 'src/utils/constants';
 import { round, getCarColor, tableSortFunction } from 'src/utils/utils';
 import TableTooltip from 'src/components/table-tooltip';
 import {
@@ -23,7 +23,7 @@ import styled from 'styled-components';
 
 const statHeaders = [
 	{key: 'total', label: 'TOTAL'},
-	{key: 'average', label: 'AVG'},
+	{key: 'averagePoints', label: 'AVG'},
 	{key: 'racesMissed', label: 'DNS\'s'},
 ];
 
@@ -45,136 +45,81 @@ const LegendSpan = styled.span`
 	cursor: pointer;
 `;
 
+const defaultSortBy = {
+	key: 'total',
+	direction: 'desc'
+};
+
 const DriverStandings = () => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
 	const [sortBy, setSortBy] = useState(null);
 	const [sortedDriverPoints, setSortedDriverPoints] = useState([]);
-	const [sortedStats, setSortedStats] = useState([]);
+	const [sortedDriverStats, setSortedDriverStats] = useState([]);
 	const isMobile = useIsMobile();
-
+	
+	const { content: driverStats, loading: driverStatsLoading, fetched: driverStatsFetched, error: driverStatsError } = useSelector(getDriverStats);
 	const { content: raceResults, loading: raceResultsLoading, fetched: raceResultsFetched, error: raceResultsError } = useSelector(getRaceResults);
-	const { content: fastestLaps, loading: fastestLapsLoading, fetched: fastestLapsFetched, error: fastestLapsError } = useSelector(getFastestLaps);
-	const { content: penalties, loading: penaltiesLoading, fetched: penaltiesFetched, error: penaltiesError } = useSelector(getPenalties);
+	const { content: driverPoints, loading: driverPointsLoading, fetched: driverPointsFetched, error: driverPointsError } = useSelector(getDriverPoints);
 	const { content: trackList, loading: trackListLoading, fetched: trackListFetched, error: trackListError } = useSelector(getTrackList);
 	const { content: participants, loading: participantsLoading, fetched: participantsFetched, error: participantsError } = useSelector(getParticipants);
 
+	if (!driverStatsFetched && !driverStatsLoading && !driverStatsError) dispatch(fetchDriverStats());
 	if (!raceResultsFetched && !raceResultsLoading && !raceResultsError) dispatch(fetchRaceResults());
-	if (!fastestLapsFetched && !fastestLapsLoading && !fastestLapsError) dispatch(fetchFastestLaps());
-	if (!penaltiesFetched && !penaltiesLoading && !penaltiesError) dispatch(fetchPenalties());
+	if (!driverPointsFetched && !driverPointsLoading && !driverPointsError) dispatch(fetchDriverPoints());
 	if (!trackListFetched && !trackListLoading && !trackListError) dispatch(fetchTrackList());
 	if (!participantsFetched && !participantsLoading && !participantsError) dispatch(fetchParticipants());
-
-	const resultHeaders = useMemo(() => trackList?.map(({ Track }) =>
-		Track
-	), [trackList]);
-
-	const driverPoints = useMemo(() => {
-		let results = []
-		if (!isEmpty(resultHeaders) && raceResultsFetched && fastestLapsFetched && penaltiesFetched) {
-			results = raceResults.map(row => {
-				const driverName = row['Driver'];
-				const driverPenalties = penalties.find(penaltyRow => penaltyRow['Driver'] === driverName);
-				const pointsPerRace = {};
-				resultHeaders.forEach(header => {
-					let racePoints = pointMap[row[header]];
-					if (racePoints !== undefined) {
-						if (fastestLaps[header] === driverName && row[header] <= 10) racePoints += 1;
-						const racePenalty = driverPenalties[header] ?? 0;
-						racePoints -= racePenalty;
-					} 
-					
-					pointsPerRace[header] = racePoints;
-				});
-				return  { 'Driver': driverName, 'Car': row['Car'], ...pointsPerRace };
-			});
-			penalties.filter(row => Object.keys(row).length > 2).forEach(penaltyRow => {
-				resultHeaders.forEach(header => {
-					let racePenalty = Number(penaltyRow[header]) ?? 0;
-					const pointsBeforePenalty = results[header] ?? 0;
-					results[header] = pointsBeforePenalty - racePenalty;
-				});
-			})
-		}
-		return results;
-	}, [raceResults, resultHeaders, fastestLaps, penalties, raceResultsFetched, fastestLapsFetched, penaltiesFetched]);
 
 	const formatDriverName = useCallback((driver) => !isMobile ? driver : driver.split(' ')[0], [isMobile]);
 	const formatTrackName = useCallback((track) => !isMobile ? track : trackDetails[track]?.abbreviation, [isMobile]);
 
-	const stats = useMemo(() => {
-		const groupedDrivers = groupBy(driverPoints, 'Driver');
-		if (isEmpty(groupedDrivers)) return [];
-		const driverStats = Object.entries(groupedDrivers).map(([driver, driverResults]) => {
-			const results = first(driverResults);
-			let racesMissed = 0;
-			let totalRaces = 0;
-			const totalRacePoints = Object.entries(results).filter(([key, value]) => key !== 'Car' && key !== 'Driver').reduce((acc, [track, points]) => {
-				if (Number.isInteger(points)) acc += Number(points);
-				return acc;
-			}, 0);
-			Object.entries(raceResults.filter((raceResult) => raceResult['Driver'] === driver)[0])
-				.filter(([key, value]) => key !== 'Driver' && key !== 'Car')
-				.forEach(([track, result]) => {
-					if (result === 'DNS') racesMissed++;
-					totalRaces++;
-				});
-
-			const average = totalRacePoints / totalRaces;
-
-			return {
-				driver,
-				average: average === 0 ? '-' : average,
-				total: totalRacePoints,
-				racesMissed,
-			}
-		})
-		return driverStats;
-	}, [raceResults, driverPoints]);
-
 	useEffect(() => {
-		const driverPointsCopy = [...driverPoints];
-		const statsCopy = [...stats];
-		if (sortBy === null) {
-			setSortedStats(statsCopy);
-			setSortedDriverPoints(driverPointsCopy);
+		if (driverPoints.length && driverStats.length) {
+			const driverPointsCopy = [...driverPoints];
+			const statsCopy = [...driverStats];
+			if (sortBy === null) {
+				const sortedStats =  [...statsCopy.sort((a,b) => tableSortFunction(a, b, defaultSortBy))]
+				setSortedDriverStats(sortedStats);
+				const sortedDrivers = sortedStats.map(stat => stat.driver);
+				setSortedDriverPoints([...driverPointsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+			}
+			else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
+				const sortedStats =  [...statsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))]
+				setSortedDriverStats(sortedStats);
+				const sortedDrivers = sortedStats.map(stat => stat.driver);
+				setSortedDriverPoints([...driverPointsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+			} else {
+				const sortedDriverPoints = [...driverPointsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))];
+				setSortedDriverPoints(sortedDriverPoints);
+				const sortedDrivers = sortedDriverPoints.map((raceResult) => raceResult.driver);
+				setSortedDriverStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
+			}
 		}
-		else if (statHeaders.some((statHeader) => statHeader.key === sortBy.key)) {
-			const sortedStats =  [...statsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))]
-			setSortedStats(sortedStats);
-			const sortedDrivers = sortedStats.map(stat => stat.driver);
-			setSortedDriverPoints([...driverPointsCopy.sort((a, b) => sortedDrivers.indexOf(a['Driver']) - sortedDrivers.indexOf(b['Driver']))]);
-		} else {
-			const sortedDriverPoints = [...driverPointsCopy.sort((a,b) => tableSortFunction(a, b, sortBy))];
-			setSortedDriverPoints(sortedDriverPoints);
-			const sortedDrivers = sortedDriverPoints.map((raceResult) => raceResult['Driver']);
-			setSortedStats([...statsCopy.sort((a, b) => sortedDrivers.indexOf(a.driver) - sortedDrivers.indexOf(b.driver))]);
-		}
-	}, [driverPoints, sortBy, stats]);
+	}, [driverPoints, sortBy, driverStats]);
 
 	const lastPosition = useMemo(() => {
 		return Math.max(...raceResults.map(row =>
-			resultHeaders.map(track => parseInt(row[track])).filter(position => !isNaN(position))
+			trackList.map(({key}) => +row[key]).filter(position => !isNaN(position))
 		).flat()) ?? 0
-	}, [resultHeaders, raceResults]);
+	}, [trackList, raceResults]);
 
 	const data = useMemo(() => 
-		resultHeaders.reduce((acc, track) => {
+		trackList.reduce((acc, track) => {
 			const trackScores = {
-				name: formatTrackName(track)
+				name: formatTrackName(track.label)
 			};
 			driverPoints.forEach(row => {
-				let result = row[track];
-				const previousScore = last(acc)?.[row['Driver']] ?? 0;
+				let result = row[track.key];
+				const previousScore = last(acc)?.[row.driver] ?? 0;
 				if (result === 'DNS' || result === 'DNF' || result === undefined) return;
 
-				trackScores[row['Driver']] = parseInt(result) + previousScore;
+				trackScores[row.driver] = +result + previousScore;
 			});
 			acc.push(trackScores);
 			return acc;
 		}, [])
-	, [resultHeaders, driverPoints, formatTrackName])
+	, [trackList, driverPoints, formatTrackName])
 
 	const graphTrackOrientation = useMemo(() => !isMobile ? 0 : 270, [isMobile]);
 
@@ -194,10 +139,10 @@ const DriverStandings = () => {
 				</thead>
 				<tbody>
 					{sortedDriverPoints.map((row) => (
-						<tr key={row['Driver']}>
+						<tr key={row.driver}>
 							<td className={`driver-standings__table-cell`}>
 								<div className='driver-standings__driver-label'>
-									{formatDriverName(row["Driver"])} <ConstructorBadge constructor={row["Car"]} />
+									{formatDriverName(row.driver)} <ConstructorBadge constructor={row.car} />
 								</div>
 							</td>
 						</tr>
@@ -227,26 +172,26 @@ const DriverStandings = () => {
 				<table>
 					<thead>
 						<tr>
-						{resultHeaders.map(header => 
+						{trackList.map(({label, key}) => 
 							<th 
-								key={header} 
+								key={label} 
 								className="driver-standings__table-header driver-standings__table-header--sortable" 
-								onClick={() => sortByKey(header)}
+								onClick={() => sortByKey(key)}
 							>
-								{formatTrackName(header)} {getSortIcon(header)}
+								{formatTrackName(label)} {getSortIcon(key)}
 							</th>
 						)}
 						</tr>
 					</thead>
 					<tbody>
 						{sortedDriverPoints.map((row) => (
-							<tr key={row['Driver']}>
-								{resultHeaders.map((header, index) =>
+							<tr key={row.driver}>
+								{trackList.map(({key, label}, index) =>
 									<td
-										key={`${row['Driver']}-${index}`}
-										className={`driver-standings__table-cell ${getClassName(header)}`}>
-										<TableTooltip innerHtml={header}>
-											{row[header]}
+										key={`${row.driver}-${index}`}
+										className={`driver-standings__table-cell ${getClassName(key)}`}>
+										<TableTooltip innerHtml={label}>
+											{row[key]}
 										</TableTooltip>
 									</td>
 								)}
@@ -256,7 +201,7 @@ const DriverStandings = () => {
 				</table>
 			</div>
 		)
-	}, [resultHeaders, formatTrackName, sortedDriverPoints, sortByKey, getSortIcon]);
+	}, [trackList, formatTrackName, sortedDriverPoints, sortByKey, getSortIcon]);
 
 	const renderStatsSubTable = useMemo(() => {
 		const renderStatsSubTableData = () => 
@@ -275,7 +220,7 @@ const DriverStandings = () => {
 					</tr>
 				</thead>
 				<tbody>
-					{sortedStats.map((driverStats) => (
+					{sortedDriverStats.map((driverStats) => (
 						<tr key={driverStats.driver}>
 							<td
 								className={`driver-standings__table-cell`}>
@@ -283,8 +228,8 @@ const DriverStandings = () => {
 							</td>
 							<td
 								className={`driver-standings__table-cell`}>
-								<TableTooltip innerHtml={round(driverStats.average, 8)}>
-									{round(driverStats.average)}
+								<TableTooltip innerHtml={round(driverStats.averagePoints, 8)}>
+									{round(driverStats.averagePoints)}
 								</TableTooltip>
 							</td>
 							<td
@@ -305,19 +250,19 @@ const DriverStandings = () => {
 				{showStats && renderStatsSubTableData()}
 			</div>
 		);
-	}, [sortedStats, showStats, sortByKey, getSortIcon]);
+	}, [sortedDriverStats, showStats, sortByKey, getSortIcon]);
 
-	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : graphFilter?.includes(item['Driver']) ? item['Primary'] === 'TRUE' ? 0.9 : 0.7 : 0.15;
+	const getCustomLineOpacity = (item) => isEmpty(graphFilter) ? item.isPrimary ? 0.9 : 0.7 : graphFilter?.includes(item.driver) ? item.isPrimary ? 0.9 : 0.7 : 0.15;
 	const getStrokeWidth = (item) => isEmpty(graphFilter) ? 1 : graphFilter?.includes(item) ? 2 : 1;
 
 	const renderLines = () => participants.map((row) => (
 		<Line
-			key={row["Driver"]}
+			key={row.driver}
 			type="monotone"
-			dataKey={row["Driver"]}
-			stroke={getCarColor(row['Car'], row['Primary'] === 'TRUE', getCustomLineOpacity(row))}
+			dataKey={row.driver}
+			stroke={getCarColor(row.car, row.isPrimary, getCustomLineOpacity(row))}
 			connectNulls
-			strokeWidth={getStrokeWidth(row['Driver'])}
+			strokeWidth={getStrokeWidth(row.car)}
 		/>
 	));
 
@@ -368,7 +313,8 @@ const DriverStandings = () => {
 	);
 
 	const isDataReady = (
-		raceResultsFetched && !raceResultsLoading
+		driverPointsFetched && !driverPointsLoading
+		&& driverStatsFetched && !driverStatsLoading
 		&& !isEmpty(trackList) && !trackListLoading
 		&& !isEmpty(participants) && !participantsLoading
 	);
@@ -391,7 +337,6 @@ const DriverStandings = () => {
 			)}
 		</div>
 	);
-
 }
 
 export default DriverStandings;

@@ -45,13 +45,13 @@ const WeatherIcon = styled.img`
 const WeatherPanel = ({trackInfo}) => {
     const isMobile = useIsMobile();
     const qualifyingWeatherGradientStages = [
-        weatherColorMap[trackInfo['Q1 Weather']],
-        weatherColorMap[trackInfo['Q2 Weather']],
+        weatherColorMap[trackInfo?.q1Weather],
+        weatherColorMap[trackInfo?.q2Weather],
     ];
     const raceWeatherGradientStages = [
-        weatherColorMap[trackInfo['R1 Weather']],
-        weatherColorMap[trackInfo['R2 Weather']],
-        weatherColorMap[trackInfo['R3 Weather']],
+        weatherColorMap[trackInfo?.r1Weather],
+        weatherColorMap[trackInfo?.r2Weather],
+        weatherColorMap[trackInfo?.r3Weather],
     ];
 	return (
         <div className="weather-panel">
@@ -59,12 +59,12 @@ const WeatherPanel = ({trackInfo}) => {
                 <Title>Qualifying</Title>
                 <WeatherRow>
                     <WeatherItem isMobile={isMobile} isFirst>
-                        <WeatherLabel>{trackInfo['Q1 Weather']}</WeatherLabel>
-                        <WeatherIcon src={weatherIconMap[trackInfo['Q1 Weather']]}/>
+                        <WeatherLabel>{trackInfo?.q1Weather}</WeatherLabel>
+                        <WeatherIcon src={weatherIconMap[trackInfo?.q1Weather]}/>
                     </WeatherItem>
                     <WeatherItem isMobile={isMobile}>
-                        <WeatherLabel>{trackInfo['Q2 Weather']}</WeatherLabel>
-                        <WeatherIcon src={weatherIconMap[trackInfo['Q2 Weather']]}/>
+                        <WeatherLabel>{trackInfo?.q2Weather}</WeatherLabel>
+                        <WeatherIcon src={weatherIconMap[trackInfo?.q2Weather]}/>
                     </WeatherItem>
                 </WeatherRow>
             </Stint>
@@ -72,16 +72,16 @@ const WeatherPanel = ({trackInfo}) => {
                 <Title>Race</Title>
                 <WeatherRow>
                     <WeatherItem isMobile={isMobile} isFirst>
-                        <WeatherLabel>{trackInfo['R1 Weather']}</WeatherLabel>
-                        <WeatherIcon src={weatherIconMap[trackInfo['R1 Weather']]}/>
+                        <WeatherLabel>{trackInfo?.r1Weather}</WeatherLabel>
+                        <WeatherIcon src={weatherIconMap[trackInfo?.r1Weather]}/>
                     </WeatherItem>
                     <WeatherItem isMobile={isMobile}>
-                        <WeatherLabel>{trackInfo['R2 Weather']}</WeatherLabel>
-                        <WeatherIcon src={weatherIconMap[trackInfo['R2 Weather']]}/>
+                        <WeatherLabel>{trackInfo?.r2Weather}</WeatherLabel>
+                        <WeatherIcon src={weatherIconMap[trackInfo?.r2Weather]}/>
                     </WeatherItem>
                     <WeatherItem isMobile={isMobile}>
-                        <WeatherLabel>{trackInfo['R3 Weather']}</WeatherLabel>
-                        <WeatherIcon src={weatherIconMap[trackInfo['R3 Weather']]}/>
+                        <WeatherLabel>{trackInfo?.r3Weather}</WeatherLabel>
+                        <WeatherIcon src={weatherIconMap[trackInfo?.r3Weather]}/>
                     </WeatherItem>
                 </WeatherRow>
             </Stint>

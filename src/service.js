@@ -41,6 +41,26 @@ const service = {
         ...seasonSheetConfig,
         sheetsOptions: [{ id: 'Highlights' }],
     }),
+
+    getDriverPoints: async () => await fetchGoogleSheetsData({
+        ...seasonSheetConfig,
+        sheetsOptions: [{ id: 'Driver Points' }],
+    }),
+
+    getDriverStats: async () => await fetchGoogleSheetsData({
+        ...seasonSheetConfig,
+        sheetsOptions: [{ id: 'Driver Stats' }],
+    }),
+
+    getConstructorPoints: async () => await fetchGoogleSheetsData({
+        ...seasonSheetConfig,
+        sheetsOptions: [{ id: 'Constructor Points' }],
+    }),
+
+    getConstructorStats: async () => await fetchGoogleSheetsData({
+        ...seasonSheetConfig,
+        sheetsOptions: [{ id: 'Constructor Stats' }],
+    }),
 }
 
 export default service;

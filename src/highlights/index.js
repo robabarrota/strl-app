@@ -10,12 +10,10 @@ const embedIdRegex = /\?v=(\w+)&/;
 
 const Highlights = () => {
 	const dispatch = useDispatch();
-	const { content: highlights, loading: highlightsLoading, error: highlightsError } = useSelector(getHighlights);
-	if (isEmpty(highlights) && !highlightsLoading && !highlightsError) dispatch(fetchHighlights());
+	const { content: highlights, loading: highlightsLoading, error: highlightsError, fetched: highlightsFetched } = useSelector(getHighlights);
+	if (!highlightsFetched && !highlightsLoading && !highlightsError) dispatch(fetchHighlights());
 	
-	const isDataReady = useMemo(() =>
-		!(isEmpty(highlights) || highlightsLoading),
-		[highlights, highlightsLoading]);
+	const isDataReady = useMemo(() => highlightsFetched && !highlightsLoading, [highlightsFetched, highlightsLoading]);
 
 	const getEmbedId = (url) => url?.match(embedIdRegex)[0]?.replace('?v=', '')?.replace('&', '');
 
@@ -26,7 +24,7 @@ const Highlights = () => {
 			{isDataReady && (
 				<div className="highlights__container">
 					{highlights.map(highlight => {
-						const embedId = getEmbedId(highlight['URL']);
+						const embedId = getEmbedId(highlight.url);
 						return <YoutubeEmbed key={embedId} embedId={embedId} />
 					})}
 				</div>
