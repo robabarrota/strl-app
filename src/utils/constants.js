@@ -1,8 +1,8 @@
 const mobileWidth = 920;
 
 const seasonSheetConfig = {
-    apiKey: process.env.REACT_APP_SHEETS_API_KEY,
-    sheetId: process.env.REACT_APP_MAIN_SHEET_ID,
+    apiKey: import.meta.env.VITE_SHEETS_API_KEY,
+    sheetId: import.meta.env.VITE_MAIN_SHEET_ID,
 };
 
 const carAbbreviationMap = {

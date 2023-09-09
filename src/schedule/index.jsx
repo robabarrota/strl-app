@@ -1,14 +1,14 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getTrackList } from 'src/redux/selectors';
-import { fetchTrackList } from 'src/redux/actions';
+import { getTrackList } from '@/redux/selectors';
+import { fetchTrackList } from '@/redux/actions';
 import React, { useMemo, useRef } from 'react';
-import { trackDetails } from 'src/utils/constants';
+import { trackDetails } from '@/utils/constants';
 import styled from 'styled-components';
 import Countdown from './countdown';
 import SessionSchedule from './session-schedule';
 import WeatherPanel from './weather-panel';
-import useIsMobile from 'src/hooks/useIsMobile';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const HeaderContainer = styled.fieldset`
 	display: flex;
@@ -184,8 +184,8 @@ const Schedule = () => {
 				</div>
 				{nextTrack && 
 					<div className="schedule__current-race-container" ref={nextRaceRef}>
-						<CurrentEventCard key={`round-${completedRaces.length}`}>
-							<RoundTitle>Round {completedRaces.length} - Up Next</RoundTitle>
+						<CurrentEventCard key={`round-${completedRaces.length + 1}`}>
+							<RoundTitle>Round {completedRaces.length + 1} - Up Next</RoundTitle>
 							<CurrentRaceDetailsContainer isMobile={isMobile}>
 								<div className="schedule__current-race-track-panel">
 									<div className="schedule__event-info">
@@ -236,8 +236,8 @@ const Schedule = () => {
 				<div className="schedule__race-card-container">
 					{futureRaces.map(({ date, label }, index) => {
 						return (
-							<EventCard key={`round-${index + 1}`}>
-								<RoundTitle>Round {index + 1}</RoundTitle>
+							<EventCard key={`round-${index + 2}`}>
+								<RoundTitle>Round {index + 2}</RoundTitle>
 								<div className="schedule__event-info">
 									<div className="schedule__top-bar">
 											<div>

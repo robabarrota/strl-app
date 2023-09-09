@@ -1,6 +1,6 @@
-import service from 'src/service';
+import service from '@/service';
 import * as actions from './actions';
-import { camelize, camelizeKeys } from 'src/utils/utils';
+import { camelize, camelizeKeys } from '@/utils/utils';
 
 const fetchTrackList = (store, action) => {
 	if (action.type === actions.FETCH_TRACK_LIST) {

@@ -1,17 +1,17 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getConstructorPoints, getConstructorStats, getRaceResults, getTrackList, getParticipants } from 'src/redux/selectors';
-import { fetchConstructorPoints, fetchConstructorStats, fetchRaceResults, fetchTrackList, fetchParticipants } from 'src/redux/actions';
+import { getConstructorPoints, getConstructorStats, getRaceResults, getTrackList, getParticipants } from '@/redux/selectors';
+import { fetchConstructorPoints, fetchConstructorStats, fetchRaceResults, fetchTrackList, fetchParticipants } from '@/redux/actions';
 import { isEmpty, last, isNaN } from 'lodash';
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import ConstructorBadge from 'src/components/constructor-badge';
-import useIsMobile from 'src/hooks/useIsMobile';
+import ConstructorBadge from '@/components/constructor-badge';
+import useIsMobile from '@/hooks/useIsMobile';
 import {
 	carAbbreviationMap,
 	trackDetails,
-} from 'src/utils/constants';
-import { round, getCarColor, tableSortFunction } from 'src/utils/utils';
-import TableTooltip from 'src/components/table-tooltip';
+} from '@/utils/constants';
+import { round, getCarColor, tableSortFunction } from '@/utils/utils';
+import TableTooltip from '@/components/table-tooltip';
 import {
 	LineChart,
 	Line,

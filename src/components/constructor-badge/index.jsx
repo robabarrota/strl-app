@@ -1,5 +1,5 @@
 import './styles.scss';
-import { carAbbreviationMap } from 'src/utils/constants';
+import { carAbbreviationMap } from '@/utils/constants';
 
 const ConstructorBadge = ({ constructor }) => {
 

@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
-import effects from 'src/redux/effects';
-import reducer from 'src/redux/reducer';
+import effects from '@/redux/effects';
+import reducer from '@/redux/reducer';
 
 const effectsMiddlewares = effects.map(effect => store => next => action => {
 	next(action);

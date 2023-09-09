@@ -1,9 +1,9 @@
 import './styles.scss';
 import React from 'react';
 import styled from 'styled-components';
-import { useCountdown } from 'src/hooks/useCountdown';
+import { useCountdown } from '@/hooks/useCountdown';
 import Clock from './clock';
-import useIsMobile from 'src/hooks/useIsMobile';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const CountdownContainer = styled.div`
     background-color: #2e6442;

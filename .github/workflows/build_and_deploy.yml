@@ -26,8 +26,8 @@ jobs:
         npm install
         npm run build
       env:
-        REACT_APP_SHEETS_API_KEY: ${{ secrets.REACT_APP_SHEETS_API_KEY }}
-        REACT_APP_MAIN_SHEET_ID: ${{ secrets.REACT_APP_MAIN_SHEET_ID }}
+        VITE_SHEETS_API_KEY: ${{ secrets.VITE_SHEETS_API_KEY }}
+        VITE_MAIN_SHEET_ID: ${{ secrets.VITE_MAIN_SHEET_ID }}
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@v4

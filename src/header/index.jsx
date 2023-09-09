@@ -1,6 +1,6 @@
 import './styles.scss';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import useIsMobile from 'src/hooks/useIsMobile';
+import useIsMobile from '@/hooks/useIsMobile';
 import React, { useState, useMemo } from 'react';
 
 const Header = () => {

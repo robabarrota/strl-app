@@ -1,7 +1,7 @@
 import './styles.scss';
 import { useDispatch, useSelector } from 'react-redux';
-import { getMedalCount } from 'src/redux/selectors';
-import { fetchMedalCount } from 'src/redux/actions';
+import { getMedalCount } from '@/redux/selectors';
+import { fetchMedalCount } from '@/redux/actions';
 import React, { useMemo, useState, useCallback } from 'react';
 
 import {

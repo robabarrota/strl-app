@@ -2,8 +2,8 @@ import './styles.scss';
 import React, { useMemo } from 'react';
 import YoutubeEmbed from '../components/youtube-embed'
 import { useDispatch, useSelector } from 'react-redux';
-import { getHighlights} from 'src/redux/selectors';
-import { fetchHighlights} from 'src/redux/actions';
+import { getHighlights} from '@/redux/selectors';
+import { fetchHighlights} from '@/redux/actions';
 
 const embedIdRegex = /\?v=(\w+)&/;
 

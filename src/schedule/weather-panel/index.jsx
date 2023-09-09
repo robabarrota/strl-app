@@ -1,8 +1,8 @@
 import './styles.scss';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { weatherIconMap, weatherColorMap } from 'src/utils/constants';
-import useIsMobile from 'src/hooks/useIsMobile';
+import { weatherIconMap, weatherColorMap } from '@/utils/constants';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const Title = styled.div`
     font-family: 'F1BoldRegular';
