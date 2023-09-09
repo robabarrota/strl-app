@@ -5,6 +5,7 @@ import { resolve } from 'path';
 
 export default defineConfig(() => {
   return {
+    base: '/strl-app/',
     build: {
       outDir: 'build',
     },
