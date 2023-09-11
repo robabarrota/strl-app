@@ -1,0 +1,102 @@
+@import '../../variables';
+
+.driver-statistics {
+    display: grid;
+    gap: 2.5em;
+
+    &__title {
+        margin-left: 18px;
+        margin-bottom: 0;
+    }
+
+    &__table-container {
+        width: 100%;
+        display: flex;
+        overflow-x: auto;
+    }
+
+    &__graph-container {
+        max-width: inherit;
+        height: 80vh;
+        overflow-x: auto;
+        overflow-y: hidden;
+        @media screen and (max-width: $mobile-width) {
+            height: 60vh;
+        }
+    }
+
+    &__end-subtable-container {
+        &--left {
+            border-right: solid 2px #ffc0bd;
+            flex-shrink: 0;
+        }
+
+        &--right {
+            border-left: solid 2px #ffc0bd;
+            flex-shrink: 0;
+            position: relative;
+        }
+    }
+
+    &__results-subtable-container {
+        overflow-x: auto;
+        flex-grow: 1;
+    }
+
+    &__table-cell {
+        padding: 18px 20px 14px;
+        white-space: nowrap;
+    }
+
+    &__driver-label {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    &__table-header {
+        padding: 18px 20px 14px;
+        white-space: nowrap;
+
+        &--sortable {
+            cursor: pointer;
+        }
+    }
+
+    &__driver {
+        color: #4a4a4a;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    &__car {
+        color: gray;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    &__track {
+        color: #4a4a4a;
+    }
+
+    &__toggle-stats {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        cursor: pointer;
+        height: 100%;
+        width: 16px;
+        right: 0;
+        background-image: linear-gradient(to left, #ffc0bd 25%, transparent);
+
+        &.show {
+            left: 0;
+            background-image: linear-gradient(to right, #ffc0bd 25%, transparent);
+        }
+
+        >i {
+            display: block;
+        }
+    }
+}

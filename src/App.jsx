@@ -8,6 +8,7 @@ import Highlights from './highlights/index';
 import NotFound from './not-found';
 import Penalties from './penalties/index';
 import Standings from './standings/index';
+import Statistics from './statistics/index';
 
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 
@@ -23,6 +24,7 @@ const App = () => {
 						<Route path="qualifying" element={<Qualifying />} />
 						<Route path="standings" element={<Standings />} />
 						<Route path="medal-count" element={<MedalCount />} />
+						<Route path="statistics" element={<Statistics />} />
 						<Route path="highlights" element={<Highlights />} />
 						<Route path="penalties" element={<Penalties />} />
 						<Route exact path="/" element={<Navigate replace to="/race-results" />}/>

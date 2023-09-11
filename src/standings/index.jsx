@@ -1,8 +1,8 @@
 import './styles.scss';
 import React, {useCallback, useState, useMemo} from 'react';
 import Tabs from '@/components/tabs';
-import DriverStandings from '../driver-standings/index';
-import ConstructorStandings from '../constructor-standings/index';
+import DriverStandings from './driver-standings/index';
+import ConstructorStandings from './constructor-standings/index';
 
 const tabs = [
 	'Driver',
