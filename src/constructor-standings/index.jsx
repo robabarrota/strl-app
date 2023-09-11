@@ -52,7 +52,7 @@ const defaultSortBy = {
 	direction: 'desc'
 };
 
-const ConstructorStandings = () => {
+const ConstructorStandings = ({show}) => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
@@ -318,10 +318,8 @@ const ConstructorStandings = () => {
 		&& !isEmpty(participants) && !participantsLoading
 	);
 
-	return (
+	return show && (
 		<div className="constructor-standings">
-			<h1 className='constructor-standings__title'>Constructor Standings</h1>
-
 			{isDataReady && (
 				<>
 					<div className="constructor-standings__table-container">

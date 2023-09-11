@@ -1,0 +1,21 @@
+@import '../variables';
+
+.standings {
+    display: grid;
+    gap: 1.5rem;
+    @media screen and (max-width: $mobile-width) {
+        gap: 1rem;
+    }
+
+    &__title {
+        margin-left: 0;
+        margin-bottom: 0;
+    }
+    
+    &__title-container {
+        display: grid;
+        grid-auto-flow: row;
+        gap: 0.5em;
+        margin-left: 18px;
+    }
+}

@@ -50,7 +50,7 @@ const defaultSortBy = {
 	direction: 'desc'
 };
 
-const DriverStandings = () => {
+const DriverStandings = ({show}) => {
 	const dispatch = useDispatch();
 	const [showStats, setShowStats] = useState(false);
 	const [graphFilter, setGraphFilter] = useState([]);
@@ -319,10 +319,8 @@ const DriverStandings = () => {
 		&& !isEmpty(participants) && !participantsLoading
 	);
 
-	return (
+	return show && (
 		<div className="driver-standings">
-			<h1 className='driver-standings__title'>Driver Standings</h1>
-
 			{isDataReady && (
 				<>
 					<div className="driver-standings__table-container">
