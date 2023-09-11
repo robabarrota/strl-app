@@ -1,6 +1,6 @@
 import './styles.scss';
 import React, { useMemo } from 'react';
-import YoutubeEmbed from '../components/youtube-embed'
+import YoutubeEmbed from '@/components/youtube-embed'
 import { useDispatch, useSelector } from 'react-redux';
 import { getHighlights} from '@/redux/selectors';
 import { fetchHighlights} from '@/redux/actions';

@@ -7,7 +7,7 @@ import { tableSortFunction } from '@/utils/utils';
 import ConstructorBadge from '@/components/constructor-badge';
 
 import { useMemo, useState, useCallback, useEffect } from 'react';
-import useIsMobile from 'hooks/useIsMobile';
+import useIsMobile from '@/hooks/useIsMobile';
 
 const defaultSortBy = {
 	key: 'total',

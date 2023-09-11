@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { mobileWidth } from '../utils/constants';
+import { mobileWidth } from '@/utils/constants';
 
 function getWindowDimensions() {
     const { innerWidth: width, innerHeight: height } = window;
