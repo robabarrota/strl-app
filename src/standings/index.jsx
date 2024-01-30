@@ -12,11 +12,11 @@ const bem = cb(blockName);
 const tabs = [
 	{
 		label: 'Driver',
-		icon: '/strl-app/driver-icon.png',
+		icon: '/driver-icon.png',
 	},
 	{
 		label: 'Constructor',
-		icon: '/strl-app/constructor-icon.png',
+		icon: '/constructor-icon.png',
 	},
 ];
 

@@ -12,9 +12,9 @@ import Statistics from './statistics/index';
 import Drivers from './drivers/index';
 import Driver from './driver/index';
 
-import { Navigate, ScrollRestoration, createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { Navigate, ScrollRestoration, createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 
-const router = createHashRouter([
+const router = createBrowserRouter([
 	{
 		element: <Layout />,
 		children: [

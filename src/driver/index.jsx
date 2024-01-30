@@ -26,7 +26,7 @@ const Background = styled.div`
 	display: inline-block;
 	height: 100%;
 	width: 100%;
-	background: linear-gradient(to top, rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.04) 100%), url('/strl-app/driver-background-image.png');
+	background: linear-gradient(to top, rgba(255,255,255,0.1) 0%,rgba(255,255,255,0.04) 100%), url('/driver-background-image.png');
     padding: 2px;
 	background-repeat: repeat;
 	background-size: 13%;
